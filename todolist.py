@@ -364,14 +364,54 @@ df = normalize_task_dates(load_data())
 # =========================
 with st.sidebar:
     st.markdown("### 資料來源")
-    uploaded = st.file_uploader("上傳 tasks.csv 覆蓋示例資料", type=["csv"])
+
+    uploaded = st.file_uploader("上傳 tasks.csv", type=["csv"], key="task_csv_uploader")
     if uploaded is not None:
         up_df = pd.read_csv(uploaded)
         up_df.to_csv(DEFAULT_CSV, index=False)
         st.cache_data.clear()
         st.success("已更新資料，重新整理頁面即可。")
+        st.rerun()
+
     st.markdown("---")
-    st.markdown("**CSV 必備欄位**")
+    st.markdown("### 新增任務")
+
+    with st.form("add_task_form", clear_on_submit=True):
+        task_name = st.text_input("任務名稱")
+        category = st.selectbox("分類", ["學習成長", "日常生活", "自我照顧"])
+        status = st.selectbox("狀態", ["未完成", "進行中", "已完成"])
+        task_date = st.date_input("日期", value=date.today())
+        note = st.text_area("備註", height=80)
+
+        submitted = st.form_submit_button("新增任務")
+
+        if submitted:
+            if not task_name.strip():
+                st.warning("請先輸入任務名稱")
+            else:
+                current_df = load_data(DEFAULT_CSV).copy()
+                new_id = 1 if current_df.empty else int(current_df["id"].max()) + 1
+
+                new_row = pd.DataFrame([{
+                    "id": new_id,
+                    "task_name": task_name.strip(),
+                    "category": category,
+                    "status": status,
+                    "date": task_date,
+                    "week": "",
+                    "weekday": "",
+                    "note": note.strip(),
+                }])
+
+                updated_df = pd.concat([current_df, new_row], ignore_index=True)
+                updated_df.to_csv(DEFAULT_CSV, index=False)
+
+                st.cache_data.clear()
+                st.success("任務已新增")
+                st.rerun()
+
+    st.markdown("---")
+    st.markdown("**CSV 欄位**")
     st.code("id,task_name,category,status,date,week,weekday,note", language="text")
 
 # =========================
@@ -545,8 +585,7 @@ if "selected_year" not in st.session_state:
     st.session_state.selected_year = default_year
 
 if "selected_week" not in st.session_state:
-    current_week = "W" + str(datetime.today().isocalendar().week)
-    st.session_state.selected_week = current_week
+    st.session_state.selected_week = "W" + str(datetime.today().isocalendar().week)
 
 selected_year = st.session_state.selected_year
 week_options = get_week_options(selected_year)
@@ -591,21 +630,39 @@ with right_col:
     c1, c2, c3, c4 = st.columns([1.2, 0.9, 1.0, 1.4])
 
     with c1:
-        st.markdown('<div class="small-note" style="margin-top:8px;">本週目標：持續進步，累積成更好的自己。</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="small-note" style="margin-top:8px;">本週目標：持續進步，累積成更好的自己。</div>',
+            unsafe_allow_html=True
+        )
 
     with c2:
-        st.markdown('<div style="margin-bottom:4px; font-weight:700; color:#6C6064; text-align:center;">年份</div>', unsafe_allow_html=True)
-        chosen_year = st.selectbox("年份", year_options, index=year_options.index(selected_year), label_visibility="collapsed")
-        st.session_state.selected_year = chosen_year
+        st.markdown(
+            '<div style="margin-bottom:4px; font-weight:700; color:#6C6064; text-align:center;">年份</div>',
+            unsafe_allow_html=True
+        )
+        st.session_state.selected_year = st.selectbox(
+            "年份",
+            year_options,
+            index=year_options.index(st.session_state.selected_year),
+            label_visibility="collapsed"
+        )
 
     with c3:
-        new_week_options = get_week_options(st.session_state.selected_year)
-        if st.session_state.selected_week not in new_week_options:
-            st.session_state.selected_week = new_week_options[0]
+        current_week_options = get_week_options(st.session_state.selected_year)
 
-        st.markdown('<div style="margin-bottom:4px; font-weight:700; color:#6C6064; text-align:center;">週次</div>', unsafe_allow_html=True)
-        chosen_week = st.selectbox("週次", new_week_options, index=new_week_options.index(st.session_state.selected_week), label_visibility="collapsed")
-        st.session_state.selected_week = chosen_week
+        if st.session_state.selected_week not in current_week_options:
+            st.session_state.selected_week = current_week_options[0]
+
+        st.markdown(
+            '<div style="margin-bottom:4px; font-weight:700; color:#6C6064; text-align:center;">週次</div>',
+            unsafe_allow_html=True
+        )
+        st.session_state.selected_week = st.selectbox(
+            "週次",
+            current_week_options,
+            index=current_week_options.index(st.session_state.selected_week),
+            label_visibility="collapsed"
+        )
 
     selected_year = st.session_state.selected_year
     selected_week = st.session_state.selected_week
@@ -613,7 +670,12 @@ with right_col:
 
     with c4:
         st.markdown(
-            f'<div style="text-align:right; margin-top:10px;"><div style="font-size:1.1rem; font-weight:700; color:#413739;">{monday.year} / {calendar.month_abbr[monday.month]} / 第 {selected_week.replace("W", "")} 週</div><div class="small-note">{monday.month}/{monday.day} ({monday.strftime("%a")}) - {sunday.month}/{sunday.day} ({sunday.strftime("%a")})</div></div>',
+            f'<div style="text-align:right; margin-top:10px;">'
+            f'<div style="font-size:1.1rem; font-weight:700; color:#413739;">'
+            f'{monday.year} / {calendar.month_abbr[monday.month]} / 第 {selected_week.replace("W", "")} 週'
+            f'</div>'
+            f'<div class="small-note">{monday.month}/{monday.day} ({monday.strftime("%a")}) - {sunday.month}/{sunday.day} ({sunday.strftime("%a")})</div>'
+            f'</div>',
             unsafe_allow_html=True,
         )
 
@@ -665,53 +727,3 @@ st.markdown(
 
 with st.expander("查看目前使用的資料表"):
     st.dataframe(df, use_container_width=True)
-with st.sidebar:
-    st.markdown("### 資料來源")
-    uploaded = st.file_uploader("上傳 tasks.csv", type=["csv"])
-    if uploaded is not None:
-        up_df = pd.read_csv(uploaded)
-        up_df.to_csv(DEFAULT_CSV, index=False)
-        st.cache_data.clear()
-        st.success("已更新資料，重新整理頁面即可。")
-
-    st.markdown("---")
-    st.markdown("### 新增任務")
-
-    with st.form("add_task_form", clear_on_submit=True):
-        task_name = st.text_input("任務名稱")
-        category = st.selectbox("分類", ["學習成長", "日常生活", "自我照顧"])
-        status = st.selectbox("狀態", ["未完成", "進行中", "已完成"])
-        task_date = st.date_input("日期", value=date.today())
-        note = st.text_area("備註", height=80)
-
-        submitted = st.form_submit_button("新增任務")
-
-        if submitted:
-            if not task_name.strip():
-                st.warning("請先輸入任務名稱")
-            else:
-                current_df = load_data(DEFAULT_CSV).copy()
-
-                new_id = 1 if current_df.empty else int(current_df["id"].max()) + 1
-
-                new_row = pd.DataFrame([{
-                    "id": new_id,
-                    "task_name": task_name.strip(),
-                    "category": category,
-                    "status": status,
-                    "date": task_date,
-                    "week": "",
-                    "weekday": "",
-                    "note": note.strip(),
-                }])
-
-                updated_df = pd.concat([current_df, new_row], ignore_index=True)
-                updated_df.to_csv(DEFAULT_CSV, index=False)
-
-                st.cache_data.clear()
-                st.success("任務已新增")
-                st.rerun()
-
-    st.markdown("---")
-    st.markdown("**CSV 欄位**")
-    st.code("id,task_name,category,status,date,week,weekday,note", language="text")
