@@ -136,20 +136,28 @@ html, body, [class*="css"] {{
     line-height: 1.35;
 }}
     .mini-row {{
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        padding: 4px 0;
-        border-bottom: 1px dashed #EFE5E8;
-        font-size: 0.66rem;
+    display: block;
+    padding: 6px 0;
+    border-bottom: 1px dashed #EFE5E8;
+    font-size: 0.66rem;
+    }}
+
+    .mini-task {{
+    line-height: 1.45;
+    margin-bottom: 4px;
+    word-break: break-word;
+    }}
+
+    .mini-status {{
+    display: flex;
+    justify-content: flex-start;
     }}
     .mini-row:last-child {{ border-bottom: none; }}
     .badge {{
         display: inline-block;
         border-radius: 999px;
-        padding: 2px 7px;
-        font-size: 0.58rem;
+        padding: 2px 6px;
+        font-size: 0.54rem;
         font-weight: 700;
         white-space: nowrap;
     }}
@@ -530,7 +538,12 @@ def render_today_card(frame: pd.DataFrame, today_value: date):
             content = '<div class="small-note">今天這一類目前沒有任務。</div>'
         else:
             content = "".join(
-                f'<div class="mini-row"><span>☐ {row.task_name}</span>{badge(row.status)}</div>'
+                f'''
+                <div class="mini-row">
+                    <div class="mini-task">☐ {row.task_name}</div>
+                    <div class="mini-status">{badge(row.status)}</div>
+                </div>
+                '''
                 for row in cat_df.itertuples()
             )
 
