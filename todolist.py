@@ -331,6 +331,11 @@ html, body, [class*="css"] {{
         background: #D8DDE6;
         border-radius: 999px;
     }}
+    div[data-testid="stButton"] > button {{
+    border-radius: 10px;
+    min-height: 34px;
+    padding: 0 8px;
+    }}
     </style>
     """,
     unsafe_allow_html=True,
