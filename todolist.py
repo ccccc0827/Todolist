@@ -705,7 +705,7 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                     else:
                         st.warning("請輸入任務名稱")
 
- left_col, right_col = st.columns([1.05, 2.55], gap="large")
+left_col, right_col = st.columns([1.05, 2.55], gap="large")
 
     with left_col:
         st.markdown(
