@@ -601,18 +601,19 @@ focus_month = monday.month
 # =========================
 # Top banner
 # =========================
-st.markdown(
-    f'''
-    <div class="top-wrap">
-        <div>
-            <div class="top-title">Weekly Planning Dashboard ✧</div>
-            <div class="top-sub">小小的進步，累積成更好的自己。</div>
+with tab1:
+    st.markdown(
+        f'''
+        <div class="top-wrap">
+            <div>
+                <div class="top-title">Weekly Planning Dashboard ✧</div>
+                <div class="top-sub">小小的進步，累積成更好的自己。</div>
+            </div>
+            <div class="top-sub">{focus_year} / {calendar.month_abbr[focus_month]} &nbsp;&nbsp;|&nbsp;&nbsp; {selected_week} &nbsp;&nbsp;|&nbsp;&nbsp; Today: {date.today().strftime('%b %d (%a)')}</div>
         </div>
-        <div class="top-sub">{focus_year} / {calendar.month_abbr[focus_month]} &nbsp;&nbsp;|&nbsp;&nbsp; {selected_week} &nbsp;&nbsp;|&nbsp;&nbsp; Today: {date.today().strftime('%b %d (%a)')}</div>
-    </div>
-    ''',
-    unsafe_allow_html=True,
-)
+        ''',
+        unsafe_allow_html=True,
+    )
 
 # =========================
 # Layout
@@ -703,116 +704,127 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                         st.rerun()
                     else:
                         st.warning("請輸入任務名稱")
-left_col, right_col = st.columns([1.05, 2.55], gap="large")
 
-with left_col:
-    st.markdown(render_calendar_html(focus_year, focus_month, date.today(), selected_week, monday, sunday), unsafe_allow_html=True)
-    st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
-    st.markdown(render_today_card(df, date.today()), unsafe_allow_html=True)
-    st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
-    st.markdown(render_summary_card(df, selected_week), unsafe_allow_html=True)
+ left_col, right_col = st.columns([1.05, 2.55], gap="large")
 
-with right_col:
-    c1, c2, c3, c4 = st.columns([1.2, 0.9, 1.0, 1.4])
-
-    with c1:
+    with left_col:
         st.markdown(
-            '<div class="small-note" style="margin-top:8px;">本週目標：持續進步，累積成更好的自己。</div>',
+            render_calendar_html(focus_year, focus_month, date.today(), selected_week, monday, sunday),
             unsafe_allow_html=True
         )
+        st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
+        st.markdown(render_today_card(df, date.today()), unsafe_allow_html=True)
+        st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
+        st.markdown(render_summary_card(df, selected_week), unsafe_allow_html=True)
 
-    with c2:
-        st.markdown(
-            '<div style="margin-bottom:4px; font-weight:700; color:#6C6064; text-align:center;">年份</div>',
-            unsafe_allow_html=True
-        )
-        st.session_state.selected_year = st.selectbox(
-            "年份",
-            year_options,
-            index=year_options.index(st.session_state.selected_year),
-            label_visibility="collapsed"
-        )
+    with right_col:
+        c1, c2, c3, c4 = st.columns([1.2, 0.9, 1.0, 1.4])
 
-    with c3:
-        current_week_options = get_week_options(st.session_state.selected_year)
+        with c1:
+            st.markdown(
+                '<div class="small-note" style="margin-top:8px;">本週目標：持續進步，累積成更好的自己。</div>',
+                unsafe_allow_html=True
+            )
 
-        if st.session_state.selected_week not in current_week_options:
-            st.session_state.selected_week = current_week_options[0]
+        with c2:
+            st.markdown(
+                '<div style="margin-bottom:4px; font-weight:700; color:#6C6064; text-align:center;">年份</div>',
+                unsafe_allow_html=True
+            )
+            st.session_state.selected_year = st.selectbox(
+                "年份",
+                year_options,
+                index=year_options.index(st.session_state.selected_year),
+                label_visibility="collapsed",
+                key="dashboard_year"
+            )
 
-        st.markdown(
-            '<div style="margin-bottom:4px; font-weight:700; color:#6C6064; text-align:center;">週次</div>',
-            unsafe_allow_html=True
-        )
-        st.session_state.selected_week = st.selectbox(
-            "週次",
-            current_week_options,
-            index=current_week_options.index(st.session_state.selected_week),
-            label_visibility="collapsed"
-        )
+        with c3:
+            current_week_options = get_week_options(st.session_state.selected_year)
 
-    selected_year = st.session_state.selected_year
-    selected_week = st.session_state.selected_week
-    monday, sunday = get_week_range(selected_year, selected_week)
+            if st.session_state.selected_week not in current_week_options:
+                st.session_state.selected_week = current_week_options[0]
 
-    with c4:
-        st.markdown(
-            f'<div style="text-align:right; margin-top:10px;">'
-            f'<div style="font-size:1.1rem; font-weight:700; color:#413739;">'
-            f'{monday.year} / {calendar.month_abbr[monday.month]} / 第 {selected_week.replace("W", "")} 週'
-            f'</div>'
-            f'<div class="small-note">{monday.month}/{monday.day} ({monday.strftime("%a")}) - {sunday.month}/{sunday.day} ({sunday.strftime("%a")})</div>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
+            st.markdown(
+                '<div style="margin-bottom:4px; font-weight:700; color:#6C6064; text-align:center;">週次</div>',
+                unsafe_allow_html=True
+            )
+            st.session_state.selected_week = st.selectbox(
+                "週次",
+                current_week_options,
+                index=current_week_options.index(st.session_state.selected_week),
+                label_visibility="collapsed",
+                key="dashboard_week"
+            )
 
-    st.markdown('<div style="height:10px"></div>', unsafe_allow_html=True)
+        selected_year = st.session_state.selected_year
+        selected_week = st.session_state.selected_week
+        monday, sunday = get_week_range(selected_year, selected_week)
 
-    week_dates = [monday + timedelta(days=i) for i in range(7)]
+        with c4:
+            st.markdown(
+                f'<div style="text-align:right; margin-top:10px;">'
+                f'<div style="font-size:1.1rem; font-weight:700; color:#413739;">'
+                f'{monday.year} / {calendar.month_abbr[monday.month]} / 第 {selected_week.replace("W", "")} 週'
+                f'</div>'
+                f'<div class="small-note">{monday.month}/{monday.day} ({monday.strftime("%a")}) - {sunday.month}/{sunday.day} ({sunday.strftime("%a")})</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
 
-top_days = st.columns(4, gap="medium")
-for idx, day_name in enumerate(["Mon", "Tue", "Wed", "Thu"]):
-    with top_days[idx]:
-        render_day_panel(day_name, week_dates[idx], df, selected_week)
+        st.markdown('<div style="height:10px"></div>', unsafe_allow_html=True)
 
-st.markdown("")
-bottom_left, bottom_mid, bottom_right, memo_col = st.columns([1, 1, 1, 0.82], gap="medium")
-with bottom_left:
-    render_day_panel("Fri", week_dates[4], df, selected_week)
-with bottom_mid:
-    render_day_panel("Sat", week_dates[5], df, selected_week)
-with bottom_right:
-    render_day_panel("Sun", week_dates[6], df, selected_week)
-with memo_col:
+        week_dates = [monday + timedelta(days=i) for i in range(7)]
+
+        top_days = st.columns(4, gap="medium")
+        for idx, day_name in enumerate(["Mon", "Tue", "Wed", "Thu"]):
+            with top_days[idx]:
+                render_day_panel(day_name, week_dates[idx], df, selected_week)
+
+        st.markdown("<div style='height:14px;'></div>", unsafe_allow_html=True)
+
+        bottom_left, bottom_mid, bottom_right, memo_col = st.columns([1, 1, 1, 0.82], gap="medium")
+
+        with bottom_left:
+            render_day_panel("Fri", week_dates[4], df, selected_week)
+
+        with bottom_mid:
+            render_day_panel("Sat", week_dates[5], df, selected_week)
+
+        with bottom_right:
+            render_day_panel("Sun", week_dates[6], df, selected_week)
+
+        with memo_col:
+            st.markdown(
+                '''
+                <div class="memo-box">
+                    <div class="memo-title">本週備註 ♡</div>
+                    <div class="small-note">
+                        專注在重要的事，<br>
+                        不追求完美，<br>
+                        但求每天有進步。<br><br>
+                        可以把這裡留給：<br>
+                        • 本週提醒<br>
+                        • 小小反思<br>
+                        • 想記住的一句話
+                    </div>
+                </div>
+                ''',
+                unsafe_allow_html=True,
+            )
+
     st.markdown(
         '''
-        <div class="memo-box">
-             <div class="memo-title">本週備註 ♡</div>
-            <div class="small-note">
-                    專注在重要的事，<br>
-                    不追求完美，<br>
-                    但求每天有進步。<br><br>
-                    可以把這裡留給：<br>
-                    • 本週提醒<br>
-                    • 小小反思<br>
-                    • 想記住的一句話
-               </div>
+        <div class="footer-strip">
+            <div>快速切換：任務總表 ｜ 月統計 ｜ 年計畫 ｜ 設定</div>
+            <div>週次切換後，右側與統計會同步更新</div>
         </div>
         ''',
         unsafe_allow_html=True,
     )
 
-st.markdown(
-    '''
-    <div class="footer-strip">
-        <div>快速切換：任務總表　｜　月統計　｜　年計畫　｜　設定</div>
-        <div>週次切換後，右側與統計會同步更新</div>
-    </div>
-    ''',
-    unsafe_allow_html=True,
-)
-
-with st.expander("查看目前使用的資料表"):
-    st.dataframe(df, use_container_width=True)
+    with st.expander("查看目前使用的資料表"):
+        st.dataframe(df, use_container_width=True)
 
 tab1, tab2, tab3 = st.tabs(["Dashboard", "Task Manager", "Weekly Planner"])
 with tab2:
