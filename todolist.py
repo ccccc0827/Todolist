@@ -625,29 +625,29 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
             st.info("這一天目前沒有任務，可以留白或新增安排。")
         else:
             for row in subset.itertuples():
-                for row in subset.itertuples():
-                    c1, c2 = st.columns([0.56, 0.44])
+                c1, c2 = st.columns([0.56, 0.44])
 
-                    with c1:
-                        st.write(row.task_name)
-    
-                    with c2:
-                        s1, s2 = st.columns([0.9, 1.1])
+                with c1:
+                    st.write(row.task_name)
 
-                        with s1:
-                            st.markdown(status_pill_html(row.status), unsafe_allow_html=True)
+                with c2:
+                    s1, s2 = st.columns([0.9, 1.1])
 
-                        with s2:
-                            new_status = st.selectbox(
-                                "狀態",
-                                ["未完成", "進行中", "已完成"],
-                                index=["未完成", "進行中", "已完成"].index(row.status),
-                                key=f"status_{row.id}",
-                                label_visibility="collapsed"
-                            )
-                            if new_status != row.status:
-                                update_task_status(row.id, new_status)
-                                st.rerun()
+                    with s1:
+                        st.markdown(status_pill_html(row.status), unsafe_allow_html=True)
+
+                    with s2:
+                        new_status = st.selectbox(
+                            "狀態",
+                            ["未完成", "進行中", "已完成"],
+                            index=["未完成", "進行中", "已完成"].index(row.status),
+                            key=f"status_{row.id}",
+                            label_visibility="collapsed"
+                        )
+                        if new_status != row.status:
+                            update_task_status(row.id, new_status)
+                            st.rerun()
+
         with st.expander(f"➕ 新增 {day_name} 任務"):
             with st.form(f"form_{day_name}_{day_date}"):
                 task_name = st.text_input("任務名稱", key=f"new_task_{day_name}_{day_date}")
@@ -717,7 +717,7 @@ with tab1:
         unsafe_allow_html=True,
     )
 
-    left_col, right_col = st.columns([0.78, 3.22], gap="medium")
+    left_col, right_col = st.columns([0.78, 3.22], gap="small")
 
     with left_col:
         st.markdown(
@@ -776,7 +776,7 @@ with tab1:
         with c4:
             st.markdown(
                 f'<div style="text-align:right; margin-top:10px;">'
-                f'<div style="font-size:1.1rem; font-weight:700; color:#413739;">'
+                f'<div style="font-size:1.0rem; font-weight:700; color:#413739;">'
                 f'{monday.year} / {calendar.month_abbr[monday.month]} / 第 {selected_week.replace("W", "")} 週'
                 f'</div>'
                 f'<div class="small-note">{monday.month}/{monday.day} ({monday.strftime("%a")}) - {sunday.month}/{sunday.day} ({sunday.strftime("%a")})</div>'
