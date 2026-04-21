@@ -405,7 +405,7 @@ with st.sidebar:
                 }])
 
                 updated_df = pd.concat([current_df, new_row], ignore_index=True)
-                updated_df.to_csv(DEFAULT_CSV, index=False)
+                updated_df = normalize_task_dates(updated_df)
 
                 st.cache_data.clear()
                 st.success("任務已新增")
