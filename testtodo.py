@@ -976,7 +976,7 @@ with tab1:
                 </div>
                 """)
             else:
-                preview_df = reading_df.sort_values("created_at", ascending=False).head(5)
+                preview_df = reading_df[reading_df["status"] != "已讀完"].sort_values("created_at", ascending=False).head(5)
                 preview_blocks = []
         
                 for idx, row in enumerate(preview_df.itertuples()):
