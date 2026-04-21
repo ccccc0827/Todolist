@@ -783,7 +783,7 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
             st.info("這一天目前沒有任務，可以留白或新增安排。")
         else:
             for row in subset.itertuples():
-                c1, c2, c3 = st.columns([0.5, 0.55, 0.15])
+                c1, c2, c3 = st.columns([0.5, 0.55, 0.2])
                 with c1:
                     st.write(row.task_name)
                 with c2:
@@ -913,7 +913,7 @@ with tab1:
         unsafe_allow_html=True,
     )
 
-    left_col, right_col = st.columns([0.95, 3.05], gap="small")
+    left_col, right_col = st.columns([0.95, 3.2], gap="small")
 
     with left_col:
         st.markdown(render_calendar_html(focus_year, focus_month, today_local(), selected_week, monday, sunday), unsafe_allow_html=True)
