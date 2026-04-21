@@ -380,6 +380,7 @@ with st.sidebar:
 def get_week_options(year: int):
     last_week = date(year, 12, 28).isocalendar().week
     return [f"W{i}" for i in range(1, last_week + 1)]
+    
 def get_year_options(frame: pd.DataFrame):
     years = sorted(frame["iso_year"].dropna().unique().tolist())
     current_year = datetime.today().year
@@ -388,14 +389,11 @@ def get_year_options(frame: pd.DataFrame):
         years.sort()
     return years
 
-
-def get_week_range(frame: pd.DataFrame, selected_week: str):
-    subset = frame[frame["week"] == selected_week]
-    if subset.empty:
-        today = date.today()
-        monday = today - timedelta(days=today.weekday())
-        return monday, monday + timedelta(days=6)
-    return subset["date"].min(), subset["date"].max()
+def get_week_range(selected_year: int, selected_week: str):
+    week_num = int(selected_week.replace("W", ""))
+    monday = datetime.fromisocalendar(selected_year, week_num, 1).date()
+    sunday = datetime.fromisocalendar(selected_year, week_num, 7).date()
+    return monday, sunday
 
 
 def badge(status: str) -> str:
