@@ -48,7 +48,7 @@ st.markdown(
     f"""
     <style>
 html, body, [class*="css"] {{
-    font-size: 12px;
+    font-size: 13px;
 }}
     .stApp {{
         background: {SOFT_BG};
@@ -70,14 +70,14 @@ html, body, [class*="css"] {{
         align-items: center;
     }}
     .top-title {{
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: 700;
     color: #3E3437;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
     }}
     .top-sub {{
         color: #6D6265;
-        font-size: 0.8rem;
+        font-size: 0.68rem;
     }}
     .shell-card {{
         background: {WHITE};
@@ -87,8 +87,8 @@ html, body, [class*="css"] {{
         box-shadow: 0 1px 2px rgba(0,0,0,0.02);
     }}
     .card-title {{
-    padding: 10px 14px;
-    font-size: 0.85rem;
+    padding: 8px 12px;
+    font-size: 0.76rem;
     font-weight: 700;
     border-bottom: 1px solid #E8D8DD;
 }}
@@ -108,19 +108,19 @@ html, body, [class*="css"] {{
     .weekday-label {{
         font-weight: 700;
         color: #5A4F52;
-        padding: 4px 0 6px 0;
-        font-size: 0.78rem;
+        padding: 3px 0 6px 0;
+        font-size: 0.64rem;
     }}
     .day-num {{
-        width: 24px;
-        height: 24px;
+        width: 22px;
+        height: 22px;
         margin: 0 auto;
         border-radius: 999px;
         display: flex;
         justify-content: center;
         align-items: center;
         color: #554C4F;
-        font-size: 0.82rem;
+        font-size: 0.68rem;
     }}
     .day-other {{ color: #BBB4B7; }}
     .day-today {{
@@ -130,24 +130,24 @@ html, body, [class*="css"] {{
     }}
     .small-note {{
     color: #796E71;
-    font-size: 0.76rem;
-    line-height: 1.5;
+    font-size: 0.64rem;
+    line-height: 1.35;
 }}
     .mini-row {{
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 10px;
-        padding: 6px 0;
+        gap: 8px;
+        padding: 4px 0;
         border-bottom: 1px dashed #EFE5E8;
-        font-size: 0.8rem;
+        font-size: 0.66rem;
     }}
     .mini-row:last-child {{ border-bottom: none; }}
     .badge {{
         display: inline-block;
         border-radius: 999px;
-        padding: 3px 9px;
-        font-size: 0.72rem;
+        padding: 2px 7px;
+        font-size: 0.58rem;
         font-weight: 700;
         white-space: nowrap;
     }}
@@ -166,21 +166,21 @@ html, body, [class*="css"] {{
     }}
    .stats-label {{
     color: #786D71;
-    font-size: 0.7rem;
+    font-size: 0.58rem;
 }}
     .stats-num {{
-    margin-top: 3px;
-    font-size: 1rem;
+    margin-top: 2px;
+    font-size: 0.82rem;
     font-weight: 800;
     color: #453A3D;
 }}
     .progress-row {{
         display: grid;
         grid-template-columns: 70px 1fr 40px;
-        gap: 8px;
+        gap: 6px;
         align-items: center;
-        margin: 7px 0;
-        font-size: 0.78rem;
+        margin: 5px 0;
+        font-size: 0.64rem;
     }}
     .bar-bg {{
         height: 10px;
@@ -215,12 +215,12 @@ html, body, [class*="css"] {{
         align-items: center;
     }}
     .day-header-title {{
-    font-size: 1rem;
+    font-size: 0.78rem;
     font-weight: 700;
     color: #403638;
 }}
     .day-header-date {{
-    font-size: 0.74rem;
+    font-size: 0.6rem;
     color: #6E6467;
     font-weight: 700;
 }}
@@ -228,9 +228,9 @@ html, body, [class*="css"] {{
    .day-head-row {{
     display: grid;
     grid-template-columns: 1fr 80px;
-    gap: 10px;
-    padding: 9px 14px 6px 14px;
-    font-size: 0.76rem;
+    gap: 8px;
+    padding: 7px 12px 5px 12px;
+    font-size: 0.62rem;
     font-weight: 700;
     color: #5E5658;
 }}
@@ -268,21 +268,21 @@ html, body, [class*="css"] {{
         min-height: 260px;
     }}
     .memo-title {{
-        font-size: 1rem;
+        font-size: 0.8rem;
         font-weight: 700;
         color: #9A7270;
-        margin-bottom: 14px;
+        margin-bottom: 8px;
     }}
     .footer-strip {{
-        margin-top: 16px;
+        margin-top: 12px;
         background: {LAVENDER};
-        border-radius: 16px;
-        padding: 10px 16px;
+        border-radius: 14px;
+        padding: 8px 12px;
         color: #5F5659;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 0.78rem;
+        font-size: 0.64rem;
     }}
     div[data-testid="stSelectbox"] > div {{
         border-radius: 12px;
@@ -514,7 +514,7 @@ def render_today_card(frame: pd.DataFrame, today_value: date):
         block_html = (
             '<div style="background:rgba(255,255,255,0.45); '
             'border:1px solid #D7E0EF; border-radius:14px; padding:12px;">'
-            f'<div style="text-align:center; font-weight:700; margin-bottom:10px;">{cat}</div>'
+            f'<div style="text-align:center; font-weight:700; font-size:0.66rem; margin-bottom:6px;">{cat}</div>'
             f'{content}'
             '</div>'
         )
@@ -651,7 +651,7 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
             st.info("這一天目前沒有任務，可以留白或新增安排。")
         else:
             for row in subset.itertuples():
-                c1, c2 = st.columns([0.72, 0.28])
+                c1, c2 = st.columns([0.72, 0.24])
 
                 with c1:
                     st.write(row.task_name)
