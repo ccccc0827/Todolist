@@ -43,9 +43,7 @@ WEEKDAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 # =========================
 # CSS
 # =========================
-html, body, [class*="css"]  {
-    font-size: 13px;
-}
+
 st.markdown(
     f"""
     <style>
