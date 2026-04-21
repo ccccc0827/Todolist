@@ -761,10 +761,8 @@ with tab1:
         unsafe_allow_html=True,
     )
 
-outer_left, main_area, outer_right = st.columns([0.08, 0.84, 0.08])
-
-with main_area:   
-    left_col, right_col = st.columns([0.68, 3.32], gap="small")
+ 
+    left_col, right_col = st.columns([0.8, 3.2], gap="small")
 
     with left_col:
         st.markdown(
@@ -777,7 +775,7 @@ with main_area:
         st.markdown(render_summary_card(df, selected_week), unsafe_allow_html=True)
 
     with right_col:
-        c1, c2, c3, c4 = st.columns([0.7, 1.0, 1.0, 1.3])
+        c1, c2, c3, c4 = st.columns([0.55, 1.05, 1.05, 1.35])
 
         with c1:
             st.markdown(
