@@ -11,6 +11,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
 import calendar
 from pathlib import Path
 
@@ -54,6 +55,13 @@ DEFAULT_CSV = "tasks.csv"
 READING_CSV = "reading_list.csv"
 SLEEP_CSV = "sleep_log.csv"
 HABIT_CSV = "habit_tracker.csv"
+APP_TZ = ZoneInfo("Asia/Taipei")
+
+def today_local() -> date:
+    return datetime.now(APP_TZ).date()
+
+def now_local() -> datetime:
+    return datetime.now(APP_TZ)
 
 # =========================
 # CSS
@@ -538,7 +546,7 @@ def add_book(title: str, author: str, status: str, category: str, note: str):
         "status": status,
         "category": category,
         "note": note.strip(),
-        "created_at": date.today(),
+        "created_at": today_local(),
     }])
     updated_df = pd.concat([current_df, new_row], ignore_index=True)
     save_reading_data(updated_df)
@@ -630,7 +638,7 @@ def get_week_options(year: int):
 
 def get_year_options(frame: pd.DataFrame):
     years = sorted(frame["iso_year"].dropna().unique().tolist())
-    current_year = datetime.today().year
+    current_year = now_local().year
     if current_year not in years:
         years.append(current_year)
         years.sort()
@@ -837,7 +845,7 @@ with st.sidebar:
         task_name = st.text_input("任務名稱")
         category = st.selectbox("分類", ["學習成長", "日常生活", "自我照顧"])
         status = st.selectbox("狀態", ["未完成", "進行中", "已完成"])
-        task_date = st.date_input("日期", value=date.today())
+        task_date = st.date_input("日期", value=today_local())
         note = st.text_area("備註", height=80)
         submitted = st.form_submit_button("新增任務")
         if submitted:
@@ -857,12 +865,12 @@ with st.sidebar:
 # State
 # =========================
 year_options = get_year_options(df)
-default_year = datetime.today().year if datetime.today().year in year_options else year_options[0]
+default_year = now_local().year if now_local().year in year_options else year_options[0]
 
 if "selected_year" not in st.session_state:
     st.session_state.selected_year = default_year
 if "selected_week" not in st.session_state:
-    st.session_state.selected_week = "W" + str(datetime.today().isocalendar().week)
+    st.session_state.selected_week = "W" + str(now_local().isocalendar().week)
 
 selected_year = st.session_state.selected_year
 week_options = get_week_options(selected_year)
@@ -898,7 +906,7 @@ with tab1:
                 <div class="top-title">Weekly Planning Dashboard ✧</div>
                 <div class="top-sub">小小的進步，累積成更好的自己。</div>
             </div>
-            <div class="top-sub">{focus_year} / {calendar.month_abbr[focus_month]} &nbsp;&nbsp;|&nbsp;&nbsp; {selected_week} &nbsp;&nbsp;|&nbsp;&nbsp; Today: {date.today().strftime('%b %d (%a)')}</div>
+            <div class="top-sub">{focus_year} / {calendar.month_abbr[focus_month]} &nbsp;&nbsp;|&nbsp;&nbsp; {selected_week} &nbsp;&nbsp;|&nbsp;&nbsp; Today: {today_local().strftime('%b %d (%a)')}</div>
         </div>
         ''',
         unsafe_allow_html=True,
@@ -907,9 +915,9 @@ with tab1:
     left_col, right_col = st.columns([0.95, 3.05], gap="small")
 
     with left_col:
-        st.markdown(render_calendar_html(focus_year, focus_month, date.today(), selected_week, monday, sunday), unsafe_allow_html=True)
+        st.markdown(render_calendar_html(focus_year, focus_month, today_local(), selected_week, monday, sunday), unsafe_allow_html=True)
         st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
-        st.markdown(render_today_card(df, date.today()), unsafe_allow_html=True)
+        st.markdown(render_today_card(df, today_local()), unsafe_allow_html=True)
         st.markdown("<div style='height:12px;'></div>", unsafe_allow_html=True)
         st.markdown(render_summary_card(df, selected_week), unsafe_allow_html=True)
 
@@ -1100,7 +1108,7 @@ with tab5:
 
         with left:
             with st.form("sleep_form", clear_on_submit=True):
-                log_date = st.date_input("日期", value=date.today(), key="sleep_date")
+                log_date = st.date_input("日期", value=today_local(), key="sleep_date")
                 sleep_time = st.text_input("入睡時間（HH:MM）", value="01:00")
                 wake_time = st.text_input("起床時間（HH:MM）", value="09:00")
                 quality = st.slider("睡眠品質", 1, 5, 3)
