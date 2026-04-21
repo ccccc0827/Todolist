@@ -353,23 +353,23 @@ div[data-testid="stButton"] > button {{
 }}
 
 .task-card-select div[data-testid="stSelectbox"] [data-baseweb="select"] > div {{
-    min-height: 32px;
+    min-height: 28px;
     background: #F3F5F8;
     border-radius: 10px;
     border: 1px solid #E7EAF0;
-    font-size: 0.58rem;
+    font-size: 0.5rem;
     padding-top: 0;
     padding-bottom: 0;
     min-width: 100%;
 }}
 
 .task-card-select div[data-testid="stSelectbox"] input {{
-    font-size: 0.58rem !important;
+    font-size: 0.5rem !important;
 }}
 
 .task-card-select div[data-testid="stSelectbox"] svg {{
-    width: 11px;
-    height: 11px;
+    width: 10px;
+    height: 10px;
 }}
 
 div[data-testid="stButton"] > button {{
