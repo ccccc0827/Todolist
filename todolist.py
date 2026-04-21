@@ -537,15 +537,16 @@ def render_today_card(frame: pd.DataFrame, today_value: date):
         if cat_df.empty:
             content = '<div class="small-note">今天這一類目前沒有任務。</div>'
         else:
-            content = "".join(
-                f'''
-                <div class="mini-row">
-                    <div class="mini-task">☐ {row.task_name}</div>
-                    <div class="mini-status">{badge(row.status)}</div>
-                </div>
-                '''
-                for row in cat_df.itertuples()
-            )
+            rows = []
+            for row in cat_df.itertuples():
+                row_html = (
+                    '<div class="mini-row">'
+                    f'<div class="mini-task">☐ {row.task_name}</div>'
+                    f'<div class="mini-status">{badge(row.status)}</div>'
+                    '</div>'
+                )
+                rows.append(row_html)
+            content = "".join(rows)
 
         block_html = (
             '<div style="background:rgba(255,255,255,0.45); '
