@@ -601,6 +601,12 @@ focus_month = monday.month
 # =========================
 # Top banner
 # =========================
+# =========================
+# Tabs
+# =========================
+tab1, tab2, tab3 = st.tabs(["Dashboard", "Task Manager", "Weekly Planner"])
+
+
 with tab1:
     st.markdown(
         f'''
@@ -615,97 +621,8 @@ with tab1:
         unsafe_allow_html=True,
     )
 
-# =========================
-# Layout
-# =========================
-def save_data(df: pd.DataFrame, path: str = DEFAULT_CSV):
-    df_to_save = df.copy()
-    df_to_save.to_csv(path, index=False)
-    st.cache_data.clear()
+    left_col, right_col = st.columns([1.05, 2.55], gap="large")
 
-
-def update_task_status(task_id: int, new_status: str, path: str = DEFAULT_CSV):
-    current_df = load_data(path).copy()
-    current_df.loc[current_df["id"] == task_id, "status"] = new_status
-    save_data(current_df, path)
-
-
-def add_task(task_name: str, category: str, status: str, task_date: date, note: str = "", path: str = DEFAULT_CSV):
-    current_df = load_data(path).copy()
-    new_id = 1 if current_df.empty else int(current_df["id"].max()) + 1
-
-    new_row = pd.DataFrame([{
-        "id": new_id,
-        "task_name": task_name.strip(),
-        "category": category,
-        "status": status,
-        "date": task_date,
-        "week": "",
-        "weekday": "",
-        "note": note.strip(),
-    }])
-
-    updated_df = pd.concat([current_df, new_row], ignore_index=True)
-    updated_df = normalize_task_dates(updated_df)
-    save_data(updated_df, path)
-def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selected_week: str):
-    subset = frame[(frame["week"] == selected_week) & (frame["weekday"] == day_name)].copy()
-
-    with st.container(border=True):
-        top_left, top_right = st.columns([2, 1])
-        with top_left:
-            st.markdown(f"## {day_name}.")
-        with top_right:
-            st.markdown(f"**{day_date.month}/{day_date.day}**")
-
-        st.markdown("**任務項目　　　　　　狀態**")
-
-        if subset.empty:
-            st.info("這一天目前沒有任務，可以留白或新增安排。")
-        else:
-            for row in subset.itertuples():
-                c1, c2 = st.columns([0.62, 0.38])
-
-                with c1:
-                    st.write(row.task_name)
-
-                with c2:
-                    new_status = st.selectbox(
-                        "狀態",
-                        ["未完成", "進行中", "已完成"],
-                        index=["未完成", "進行中", "已完成"].index(row.status),
-                        key=f"status_{row.id}",
-                        label_visibility="collapsed"
-                    )
-                    if new_status != row.status:
-                        update_task_status(row.id, new_status)
-                        st.rerun()
-
-        with st.expander(f"➕ 新增 {day_name} 任務"):
-            with st.form(f"form_{day_name}_{day_date}"):
-                task_name = st.text_input("任務名稱", key=f"new_task_{day_name}_{day_date}")
-                category = st.selectbox(
-                    "分類",
-                    ["學習成長", "日常生活", "自我照顧"],
-                    key=f"cat_{day_name}_{day_date}"
-                )
-                status = st.selectbox(
-                    "初始狀態",
-                    ["未完成", "進行中", "已完成"],
-                    key=f"init_status_{day_name}_{day_date}"
-                )
-                note = st.text_area("備註", key=f"note_{day_name}_{day_date}")
-                submitted = st.form_submit_button("新增任務")
-
-                if submitted:
-                    if task_name.strip():
-                        add_task(task_name, category, status, day_date, note)
-                        st.success("已新增任務")
-                        st.rerun()
-                    else:
-                        st.warning("請輸入任務名稱")
-
-left_col, right_col = st.columns([1.05, 2.55], gap="large")
     with left_col:
         st.markdown(
             render_calendar_html(focus_year, focus_month, date.today(), selected_week, monday, sunday),
@@ -771,7 +688,7 @@ left_col, right_col = st.columns([1.05, 2.55], gap="large")
                 unsafe_allow_html=True,
             )
 
-        st.markdown('<div style="height:10px"></div>', unsafe_allow_html=True)
+        st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
         week_dates = [monday + timedelta(days=i) for i in range(7)]
 
@@ -825,15 +742,23 @@ left_col, right_col = st.columns([1.05, 2.55], gap="large")
     with st.expander("查看目前使用的資料表"):
         st.dataframe(df, use_container_width=True)
 
-tab1, tab2, tab3 = st.tabs(["Dashboard", "Task Manager", "Weekly Planner"])
+
 with tab2:
     st.subheader("Task Manager")
 
     filter_col1, filter_col2 = st.columns(2)
     with filter_col1:
-        category_filter = st.selectbox("分類篩選", ["全部", "學習成長", "日常生活", "自我照顧"])
+        category_filter = st.selectbox(
+            "分類篩選",
+            ["全部", "學習成長", "日常生活", "自我照顧"],
+            key="tab2_category"
+        )
     with filter_col2:
-        status_filter = st.selectbox("狀態篩選", ["全部", "未完成", "進行中", "已完成"])
+        status_filter = st.selectbox(
+            "狀態篩選",
+            ["全部", "未完成", "進行中", "已完成"],
+            key="tab2_status"
+        )
 
     edit_df = df.copy()
 
@@ -843,13 +768,15 @@ with tab2:
         edit_df = edit_df[edit_df["status"] == status_filter]
 
     st.dataframe(edit_df, use_container_width=True)
+
+
 with tab3:
     st.subheader("新增本週任務")
 
     with st.form("weekly_add_form", clear_on_submit=True):
         task_name = st.text_input("任務名稱")
-        category = st.selectbox("分類", ["學習成長", "日常生活", "自我照顧"])
-        status = st.selectbox("狀態", ["未完成", "進行中", "已完成"])
+        category = st.selectbox("分類", ["學習成長", "日常生活", "自我照顧"], key="tab3_category")
+        status = st.selectbox("狀態", ["未完成", "進行中", "已完成"], key="tab3_status")
         task_date = st.date_input("日期", value=monday)
         note = st.text_area("備註")
         submitted = st.form_submit_button("新增")
@@ -861,4 +788,3 @@ with tab3:
                 st.rerun()
             else:
                 st.warning("請輸入任務名稱")
-
