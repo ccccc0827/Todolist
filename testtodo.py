@@ -348,10 +348,6 @@ div[data-testid="stButton"] > button {{
     min-height: 34px;
     padding: 0 8px;
 }}
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
 .task-card-select div[data-testid="stSelectbox"] > div {{
     border-radius: 10px;
 }}
@@ -375,6 +371,17 @@ div[data-testid="stButton"] > button {{
     width: 11px;
     height: 11px;
 }}
+
+div[data-testid="stButton"] > button {{
+    border-radius: 10px;
+    min-height: 34px;
+    padding: 0 8px;
+}}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 def status_pill_html(status: str) -> str:
     bg_map = {
