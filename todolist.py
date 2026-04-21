@@ -346,22 +346,18 @@ def load_data(path: str = DEFAULT_CSV) -> pd.DataFrame:
     return df
 
 
-def derive_week(df: pd.DataFrame) -> pd.DataFrame:
+def normalize_task_dates(df: pd.DataFrame) -> pd.DataFrame:
     frame = df.copy()
-    iso = pd.to_datetime(frame["date"]).dt.isocalendar()
-    derived = "W" + iso.week.astype(str)
-    frame["week"] = frame["week"].fillna(derived) if "week" in frame.columns else derived
+    dt = pd.to_datetime(frame["date"])
+
+    iso = dt.dt.isocalendar()
+    frame["iso_year"] = iso.year.astype(int)
+    frame["week"] = "W" + iso.week.astype(str)
+    frame["weekday"] = dt.dt.strftime("%a")
+
     return frame
 
-
-def derive_weekday(df: pd.DataFrame) -> pd.DataFrame:
-    frame = df.copy()
-    wd = pd.to_datetime(frame["date"]).dt.strftime("%a")
-    frame["weekday"] = frame["weekday"].fillna(wd) if "weekday" in frame.columns else wd
-    return frame
-
-
-df = derive_weekday(derive_week(load_data()))
+df = normalize_task_dates(load_data())
 
 # =========================
 # Sidebar: simple uploader
