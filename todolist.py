@@ -480,9 +480,9 @@ def render_calendar_html(year: int, month: int, today_value: date, selected_week
     <div class="shell-card">
     <div class="card-title calendar-title">📅 月曆</div>
     <div class="card-body">
-            <div style="text-align:center; font-size:1.15rem; font-weight:700; margin-bottom:10px;">{year} 年 {month} 月</div>
+            <div style="text-align:center; font-size:1rem; font-weight:600; margin-bottom:10px;">{year} 年 {month} 月</div>
             <div class="calendar-grid">{''.join(cells)}</div>
-            <div style="margin-top:14px; background:{CREAM}; border-radius:12px; padding:10px 12px; color:#6D6466; font-size:0.92rem;">
+            <div style="margin-top:14px; background:{CREAM}; border-radius:12px; padding:10px 12px; color:#6D6466; font-size:0.8rem;">
                 ⭐ {selected_week}: {monday.month}/{monday.day} ({monday.strftime('%a')}) ~ {sunday.month}/{sunday.day} ({sunday.strftime('%a')})
     </div>
     </div>
@@ -646,28 +646,22 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
             st.info("這一天目前沒有任務，可以留白或新增安排。")
         else:
             for row in subset.itertuples():
-                c1, c2 = st.columns([0.56, 0.44])
+                c1, c2 = st.columns([0.72, 0.28])
 
                 with c1:
                     st.write(row.task_name)
 
                 with c2:
-                    s1, s2 = st.columns([0.9, 1.1])
-
-                    with s1:
-                        st.markdown(status_pill_html(row.status), unsafe_allow_html=True)
-
-                    with s2:
-                        new_status = st.selectbox(
-                            "狀態",
-                            ["未完成", "進行中", "已完成"],
-                            index=["未完成", "進行中", "已完成"].index(row.status),
-                            key=f"status_{row.id}",
-                            label_visibility="collapsed"
-                        )
-                        if new_status != row.status:
-                            update_task_status(row.id, new_status)
-                            st.rerun()
+                    new_status = st.selectbox(
+                        "狀態",
+                        ["未完成", "進行中", "已完成"],
+                        index=["未完成", "進行中", "已完成"].index(row.status),
+                        key=f"status_{row.id}",
+                        label_visibility="collapsed"
+                    )
+                    if new_status != row.status:
+                        update_task_status(row.id, new_status)
+                        st.rerun()
 
         with st.expander(f"➕ 新增 {day_name} 任務"):
             with st.form(f"form_{day_name}_{day_date}"):
