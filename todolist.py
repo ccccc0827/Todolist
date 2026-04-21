@@ -822,7 +822,7 @@ with bottom_left:
 with bottom_mid:
     render_day_panel("Sat", week_dates[5], df, selected_week)
 with bottom_right:
-    render_day_panel("Sun", week_dates[6], df, selected_week
+    render_day_panel("Sun", week_dates[6], df, selected_week)
     with memo_col:
         st.markdown(
             '''
