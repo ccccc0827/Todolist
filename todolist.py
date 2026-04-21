@@ -48,7 +48,7 @@ st.markdown(
     f"""
     <style>
 html, body, [class*="css"] {{
-    font-size: 13px;
+    font-size: 12px;
 }}
     .stApp {{
         background: {SOFT_BG};
@@ -738,7 +738,7 @@ with tab1:
         unsafe_allow_html=True,
     )
 
-    left_col, right_col = st.columns([0.78, 3.22], gap="small")
+    left_col, right_col = st.columns([0.82, 3.18], gap="small")
 
     with left_col:
         st.markdown(
@@ -809,14 +809,14 @@ with tab1:
 
         week_dates = [monday + timedelta(days=i) for i in range(7)]
 
-        top_days = st.columns(4, gap="medium")
+        top_days = st.columns(4, gap="small")
         for idx, day_name in enumerate(["Mon", "Tue", "Wed", "Thu"]):
             with top_days[idx]:
                 render_day_panel(day_name, week_dates[idx], df, selected_week)
 
         st.markdown("<div style='height:14px;'></div>", unsafe_allow_html=True)
 
-        bottom_left, bottom_mid, bottom_right, memo_col = st.columns([1, 1, 1, 0.82], gap="medium")
+        bottom_left, bottom_mid, bottom_right, memo_col = st.columns([1, 1, 1, 0.78], gap="small")
 
         with bottom_left:
             render_day_panel("Fri", week_dates[4], df, selected_week)
