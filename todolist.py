@@ -478,35 +478,36 @@ def render_summary_card(frame: pd.DataFrame, selected_week: str):
         "日常生活": int((subset["category"] == "日常生活").sum()),
         "自我照顧": int((subset["category"] == "自我照顧").sum()),
     }
+
     max_count = max(cat_counts.values()) if cat_counts else 1
     rows = []
+
     for label, value in cat_counts.items():
         width = 0 if max_count == 0 else int(value / max_count * 100)
         rows.append(
-            f'''
-            <div class="progress-row">
-                <div>{label}</div>
-                <div class="bar-bg"><div class="bar-fill" style="width:{width}%; background:{CATEGORY_BAR[label]};"></div></div>
-                <div style="text-align:right;">{value}</div>
-            </div>
-            '''
+            '<div class="progress-row">'
+            f'<div>{label}</div>'
+            f'<div class="bar-bg"><div class="bar-fill" style="width:{width}%; background:{CATEGORY_BAR[label]};"></div></div>'
+            f'<div style="text-align:right;">{value}</div>'
+            '</div>'
         )
-    return f"""
-    <div class="shell-card">
-        <div class="card-title summary-title">📊 本週任務摘要 ({selected_week})</div>
-        <div class="card-body">
-            <div class="stats-grid">
-                <div class="stats-box"><div class="stats-label">總任務</div><div class="stats-num">{total}</div></div>
-                <div class="stats-box"><div class="stats-label" style="color:#5E8A57;">已完成</div><div class="stats-num" style="color:#5E8A57;">{done}</div></div>
-                <div class="stats-box"><div class="stats-label" style="color:#A87B16;">進行中</div><div class="stats-num" style="color:#A87B16;">{doing}</div></div>
-                <div class="stats-box"><div class="stats-label" style="color:#BE7484;">未完成</div><div class="stats-num" style="color:#BE7484;">{todo}</div></div>
-            </div>
-            <div style="font-weight:700; color:#685A87; margin: 6px 0 8px 0;">依分類統計</div>
-            {''.join(rows)}
-            <div style="margin-top:14px; padding:12px; border-radius:12px; background:#F8F5FF;">🌙 本週目標：保持節奏，穩定前進</div>
-        </div>
-    </div>
-    """
+
+    return (
+        '<div class="shell-card">'
+        f'<div class="card-title summary-title">📊 本週任務摘要 ({selected_week})</div>'
+        '<div class="card-body">'
+        '<div class="stats-grid">'
+        f'<div class="stats-box"><div class="stats-label">總任務</div><div class="stats-num">{total}</div></div>'
+        f'<div class="stats-box"><div class="stats-label" style="color:#5E8A57;">已完成</div><div class="stats-num" style="color:#5E8A57;">{done}</div></div>'
+        f'<div class="stats-box"><div class="stats-label" style="color:#A87B16;">進行中</div><div class="stats-num" style="color:#A87B16;">{doing}</div></div>'
+        f'<div class="stats-box"><div class="stats-label" style="color:#BE7484;">未完成</div><div class="stats-num" style="color:#BE7484;">{todo}</div></div>'
+        '</div>'
+        '<div style="font-weight:700; color:#685A87; margin: 6px 0 8px 0;">依分類統計</div>'
+        f'{"".join(rows)}'
+        '<div style="margin-top:14px; padding:12px; border-radius:12px; background:#F8F5FF;">🌙 本週目標：保持節奏，穩定前進</div>'
+        '</div>'
+        '</div>'
+    )
 
 
 def render_day_card(day_name: str, day_date: date | None, frame: pd.DataFrame, selected_week: str):
