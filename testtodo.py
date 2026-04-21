@@ -969,7 +969,21 @@ with tab1:
 
         with memo_col:
             st.markdown('<div class="memo-box"><div class="memo-title">待讀書單 ♡</div><div class="small-note">右上方新增你最近想讀的書，這裡改成獨立清單，不會隨週次切換改變。</div></div>', unsafe_allow_html=True)
-
+            if reading_df.empty:
+                st.markdown('<div class="small-note">目前還沒有書單，可以到 Reading List 分頁新增一本最近想讀的書 ✨</div></div>', unsafe_allow_html=True)
+            else:
+                preview_df = reading_df.sort_values("created_at", ascending=False).head(5)
+                for row in preview_df.itertuples():
+                    st.markdown(
+                        f'''
+                        <div style="padding:8px 0; border-bottom:1px dashed #EFE5E8;">
+                            <div style="font-size:0.72rem; font-weight:700; color:#5B4A4F; line-height:1.4;">{row.title}</div>
+                            <div class="small-note">{row.author}｜{row.status}</div>
+                        </div>
+                        ''',
+                        unsafe_allow_html=True,
+                    )
+                st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('''
         <div class="footer-strip">
             <div>快速切換：任務總表 ｜ 閱讀清單 ｜ 睡眠紀錄 ｜ Habit Tracker</div>
