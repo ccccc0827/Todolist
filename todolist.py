@@ -47,9 +47,9 @@ WEEKDAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 st.markdown(
     f"""
     <style>
-    html, body, [class*="css"] {
+html, body, [class*="css"] {{
     font-size: 13px;
-}
+}}
     .stApp {{
         background: {SOFT_BG};
         color: {TEXT};
