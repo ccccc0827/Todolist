@@ -626,28 +626,28 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
         else:
             for row in subset.itertuples():
                 for row in subset.itertuples():
-                c1, c2 = st.columns([0.56, 0.44])
+                    c1, c2 = st.columns([0.56, 0.44])
 
-                with c1:
-                    st.write(row.task_name)
+                    with c1:
+                        st.write(row.task_name)
+    
+                    with c2:
+                        s1, s2 = st.columns([0.9, 1.1])
 
-                with c2:
-                    s1, s2 = st.columns([0.9, 1.1])
+                        with s1:
+                            st.markdown(status_pill_html(row.status), unsafe_allow_html=True)
 
-                    with s1:
-                        st.markdown(status_pill_html(row.status), unsafe_allow_html=True)
-
-                    with s2:
-                        new_status = st.selectbox(
-                            "狀態",
-                            ["未完成", "進行中", "已完成"],
-                            index=["未完成", "進行中", "已完成"].index(row.status),
-                            key=f"status_{row.id}",
-                            label_visibility="collapsed"
-                        )
-                        if new_status != row.status:
-                            update_task_status(row.id, new_status)
-                            st.rerun()
+                        with s2:
+                            new_status = st.selectbox(
+                                "狀態",
+                                ["未完成", "進行中", "已完成"],
+                                index=["未完成", "進行中", "已完成"].index(row.status),
+                                key=f"status_{row.id}",
+                                label_visibility="collapsed"
+                            )
+                            if new_status != row.status:
+                                update_task_status(row.id, new_status)
+                                st.rerun()
         with st.expander(f"➕ 新增 {day_name} 任務"):
             with st.form(f"form_{day_name}_{day_date}"):
                 task_name = st.text_input("任務名稱", key=f"new_task_{day_name}_{day_date}")
