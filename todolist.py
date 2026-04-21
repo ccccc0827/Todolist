@@ -703,26 +703,26 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
             st.info("這一天目前沒有任務，可以留白或新增安排。")
         else:
             for row in subset.itertuples():
-            c1, c2, c3 = st.columns([0.50, 0.34, 0.16])
-        
-            with c1:
-                st.write(row.task_name)
-        
-            with c2:
-                new_status = st.selectbox(
-                    "狀態",
-                    ["未完成", "進行中", "已完成"],
-                    index=["未完成", "進行中", "已完成"].index(row.status),
-                    key=f"status_{row.id}",
-                    label_visibility="collapsed"
-                )
-                if new_status != row.status:
-                    update_task_status(row.id, new_status)
-                    st.rerun()
-        
-            with c3:
-            if st.button("刪除", key=f"delete_{row.id}", use_container_width=True):
-                st.session_state[f"confirm_delete_{row.id}"] = True
+                c1, c2, c3 = st.columns([0.50, 0.34, 0.16])
+            
+                with c1:
+                    st.write(row.task_name)
+            
+                with c2:
+                    new_status = st.selectbox(
+                        "狀態",
+                        ["未完成", "進行中", "已完成"],
+                        index=["未完成", "進行中", "已完成"].index(row.status),
+                        key=f"status_{row.id}",
+                        label_visibility="collapsed"
+                    )
+                    if new_status != row.status:
+                        update_task_status(row.id, new_status)
+                        st.rerun()
+            
+                with c3:
+                    if st.button("刪除", key=f"delete_{row.id}", use_container_width=True):
+                        st.session_state[f"confirm_delete_{row.id}"] = True
         
         if st.session_state.get(f"confirm_delete_{row.id}", False):
             confirm_col1, confirm_col2 = st.columns([1, 1])
