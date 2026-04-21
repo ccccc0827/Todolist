@@ -377,9 +377,16 @@ with st.sidebar:
 # =========================
 # Helpers
 # =========================
-def get_week_options(frame: pd.DataFrame):
-    weeks = frame["week"].dropna().astype(str).unique().tolist()
-    return sorted(weeks, key=lambda x: int(x.replace("W", "")))
+def get_week_options(year: int):
+    last_week = date(year, 12, 28).isocalendar().week
+    return [f"W{i}" for i in range(1, last_week + 1)]
+def get_year_options(frame: pd.DataFrame):
+    years = sorted(frame["iso_year"].dropna().unique().tolist())
+    current_year = datetime.today().year
+    if current_year not in years:
+        years.append(current_year)
+        years.sort()
+    return years
 
 
 def get_week_range(frame: pd.DataFrame, selected_week: str):
