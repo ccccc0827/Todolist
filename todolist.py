@@ -285,42 +285,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-tab1, tab2, tab3 = st.tabs(["Dashboard", "Task Manager", "Weekly Planner"])
-with tab2:
-    st.subheader("Task Manager")
-
-    filter_col1, filter_col2 = st.columns(2)
-    with filter_col1:
-        category_filter = st.selectbox("分類篩選", ["全部", "學習成長", "日常生活", "自我照顧"])
-    with filter_col2:
-        status_filter = st.selectbox("狀態篩選", ["全部", "未完成", "進行中", "已完成"])
-
-    edit_df = df.copy()
-
-    if category_filter != "全部":
-        edit_df = edit_df[edit_df["category"] == category_filter]
-    if status_filter != "全部":
-        edit_df = edit_df[edit_df["status"] == status_filter]
-
-    st.dataframe(edit_df, use_container_width=True)
-with tab3:
-    st.subheader("新增本週任務")
-
-    with st.form("weekly_add_form", clear_on_submit=True):
-        task_name = st.text_input("任務名稱")
-        category = st.selectbox("分類", ["學習成長", "日常生活", "自我照顧"])
-        status = st.selectbox("狀態", ["未完成", "進行中", "已完成"])
-        task_date = st.date_input("日期", value=monday)
-        note = st.text_area("備註")
-        submitted = st.form_submit_button("新增")
-
-        if submitted:
-            if task_name.strip():
-                add_task(task_name, category, status, task_date, note)
-                st.success("任務已新增")
-                st.rerun()
-            else:
-                st.warning("請輸入任務名稱")
 
 # =========================
 # Data helpers
@@ -854,3 +818,41 @@ st.markdown(
 
 with st.expander("查看目前使用的資料表"):
     st.dataframe(df, use_container_width=True)
+
+tab1, tab2, tab3 = st.tabs(["Dashboard", "Task Manager", "Weekly Planner"])
+with tab2:
+    st.subheader("Task Manager")
+
+    filter_col1, filter_col2 = st.columns(2)
+    with filter_col1:
+        category_filter = st.selectbox("分類篩選", ["全部", "學習成長", "日常生活", "自我照顧"])
+    with filter_col2:
+        status_filter = st.selectbox("狀態篩選", ["全部", "未完成", "進行中", "已完成"])
+
+    edit_df = df.copy()
+
+    if category_filter != "全部":
+        edit_df = edit_df[edit_df["category"] == category_filter]
+    if status_filter != "全部":
+        edit_df = edit_df[edit_df["status"] == status_filter]
+
+    st.dataframe(edit_df, use_container_width=True)
+with tab3:
+    st.subheader("新增本週任務")
+
+    with st.form("weekly_add_form", clear_on_submit=True):
+        task_name = st.text_input("任務名稱")
+        category = st.selectbox("分類", ["學習成長", "日常生活", "自我照顧"])
+        status = st.selectbox("狀態", ["未完成", "進行中", "已完成"])
+        task_date = st.date_input("日期", value=monday)
+        note = st.text_area("備註")
+        submitted = st.form_submit_button("新增")
+
+        if submitted:
+            if task_name.strip():
+                add_task(task_name, category, status, task_date, note)
+                st.success("任務已新增")
+                st.rerun()
+            else:
+                st.warning("請輸入任務名稱")
+
