@@ -710,7 +710,7 @@ with tab1:
         unsafe_allow_html=True,
     )
 
-    left_col, right_col = st.columns([1.05, 2.55], gap="large")
+   left_col, right_col = st.columns([0.78, 2.82], gap="medium")
 
     with left_col:
         st.markdown(
