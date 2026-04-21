@@ -65,10 +65,10 @@ st.markdown(
         align-items: center;
     }}
     .top-title {{
-        font-size: 1.9rem;
-        font-weight: 700;
-        color: #3E3437;
-        margin-bottom: 4px;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #3E3437;
+    margin-bottom: 4px;
     }}
     .top-sub {{
         color: #6D6265;
@@ -82,12 +82,11 @@ st.markdown(
         box-shadow: 0 1px 2px rgba(0,0,0,0.02);
     }}
     .card-title {{
-        padding: 12px 16px;
-        font-size: 1.03rem;
-        font-weight: 700;
-        border-bottom: 1px solid {LINE};
-        color: #453A3D;
-    }}
+    padding: 11px 14px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    border-bottom: 1px solid #E8D8DD;
+}}
     .card-body {{
         padding: 14px 16px 16px 16px;
     }}
@@ -124,10 +123,10 @@ st.markdown(
         font-weight: 700;
     }}
     .small-note {{
-        color: #796E71;
-        font-size: 0.9rem;
-        line-height: 1.6;
-    }}
+    color: #796E71;
+    font-size: 0.82rem;
+    line-height: 1.5;
+}}
     .mini-row {{
         display: flex;
         align-items: center;
@@ -159,16 +158,16 @@ st.markdown(
         text-align: center;
         padding: 10px 8px;
     }}
-    .stats-label {{
-        color: #786D71;
-        font-size: 0.84rem;
-    }}
+   .stats-label {{
+    color: #786D71;
+    font-size: 0.76rem;
+}}
     .stats-num {{
-        margin-top: 4px;
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: #453A3D;
-    }}
+    margin-top: 4px;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #453A3D;
+}}
     .progress-row {{
         display: grid;
         grid-template-columns: 78px 1fr 46px;
@@ -210,37 +209,38 @@ st.markdown(
         align-items: center;
     }}
     .day-header-title {{
-        font-size: 1.7rem;
-        font-weight: 700;
-        color: #403638;
-    }}
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #403638;
+}}
     .day-header-date {{
-        font-size: 0.92rem;
-        color: #6E6467;
-        font-weight: 700;
-    }}
-    .day-head-row {{
-        display: grid;
-        grid-template-columns: 1fr 94px;
-        gap: 12px;
-        padding: 11px 15px 8px 15px;
-        font-size: 0.92rem;
-        font-weight: 700;
-        color: #5E5658;
-    }}
+    font-size: 0.82rem;
+    color: #6E6467;
+    font-weight: 700;
+}}
+
+   .day-head-row {{
+    display: grid;
+    grid-template-columns: 1fr 94px;
+    gap: 12px;
+    padding: 10px 15px 6px 15px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #5E5658;
+}}
     .day-list {{
         padding: 0 15px 16px 15px;
         min-height: 260px;
     }}
     .task-row {{
-        display: grid;
-        grid-template-columns: 1fr 94px;
-        gap: 12px;
-        align-items: center;
-        padding: 8px 0;
-        border-bottom: 1px dashed #F0E6E9;
-        font-size: 0.95rem;
-    }}
+    display: grid;
+    grid-template-columns: 1fr 94px;
+    gap: 12px;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px dashed #F0E6E9;
+    font-size: 0.84rem;
+}}
     .task-row:last-child {{ border-bottom: none; }}
     .task-name {{
         display: flex;
@@ -458,7 +458,7 @@ def render_calendar_html(year: int, month: int, today_value: date, selected_week
     <div class="shell-card">
     <div class="card-title calendar-title">📅 月曆</div>
     <div class="card-body">
-            <div style="text-align:center; font-size:1.45rem; font-weight:700; margin-bottom:10px;">{year} 年 {month} 月</div>
+            <div style="text-align:center; font-size:1.15rem; font-weight:700; margin-bottom:10px;">{year} 年 {month} 月</div>
             <div class="calendar-grid">{''.join(cells)}</div>
             <div style="margin-top:14px; background:{CREAM}; border-radius:12px; padding:10px 12px; color:#6D6466; font-size:0.92rem;">
                 ⭐ {selected_week}: {monday.month}/{monday.day} ({monday.strftime('%a')}) ~ {sunday.month}/{sunday.day} ({sunday.strftime('%a')})
