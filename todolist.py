@@ -48,7 +48,7 @@ st.markdown(
     f"""
     <style>
 html, body, [class*="css"] {{
-    font-size: 13px;
+    font-size: 14px;
 }}
     .stApp {{
         background: {SOFT_BG};
@@ -738,7 +738,10 @@ with tab1:
         unsafe_allow_html=True,
     )
 
-    left_col, right_col = st.columns([0.82, 3.18], gap="small")
+outer_left, main_area, outer_right = st.columns([0.08, 0.84, 0.08])
+
+with main_area:   
+    left_col, right_col = st.columns([0.95, 2.55], gap="small")
 
     with left_col:
         st.markdown(
