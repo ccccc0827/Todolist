@@ -72,7 +72,7 @@ html, body, [class*="css"] {{
         align-items: center;
     }}
     .top-title {{
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: #3E3437;
     margin-bottom: 2px;
