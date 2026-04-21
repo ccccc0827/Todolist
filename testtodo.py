@@ -94,7 +94,7 @@ html, body, [class*="css"] {{
     align-items: center;
 }}
 .top-title {{
-    font-size: 1.2rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: #3E3437;
     margin-bottom: 2px;
@@ -352,7 +352,29 @@ div[data-testid="stButton"] > button {{
     """,
     unsafe_allow_html=True,
 )
+.task-card-select div[data-testid="stSelectbox"] > div {{
+    border-radius: 10px;
+}}
 
+.task-card-select div[data-testid="stSelectbox"] [data-baseweb="select"] > div {{
+    min-height: 32px;
+    background: #F3F5F8;
+    border-radius: 10px;
+    border: 1px solid #E7EAF0;
+    font-size: 0.58rem;
+    padding-top: 0;
+    padding-bottom: 0;
+    min-width: 100%;
+}}
+
+.task-card-select div[data-testid="stSelectbox"] input {{
+    font-size: 0.58rem !important;
+}}
+
+.task-card-select div[data-testid="stSelectbox"] svg {{
+    width: 11px;
+    height: 11px;
+}}
 
 def status_pill_html(status: str) -> str:
     bg_map = {
@@ -770,6 +792,7 @@ def render_summary_card(frame: pd.DataFrame, selected_week: str):
 def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selected_week: str):
     subset = frame[(frame["week"] == selected_week) & (frame["weekday"] == day_name)].copy()
 
+    st.markdown('<div class="task-card-select">', unsafe_allow_html=True)
     with st.container(border=True):
         top_left, top_right = st.columns([2, 1])
         with top_left:
@@ -816,7 +839,7 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                         st.rerun()
                     else:
                         st.warning("請輸入任務名稱")
-
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================
 # Load data
