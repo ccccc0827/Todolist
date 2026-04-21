@@ -369,7 +369,7 @@ def status_pill_html(status: str) -> str:
     color = text_map.get(status, "#666666")
     return (
         f'<div style="display:inline-block; padding:5px 12px; border-radius:999px; '
-        f'background:{bg}; color:{color}; font-size:0.78rem; font-weight:700; '
+        f'background:{bg}; color:{color}; font-size:0.6rem; font-weight:700; '
         f'text-align:center; white-space:nowrap;">{status}</div>'
     )
 
