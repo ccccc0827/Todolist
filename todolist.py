@@ -295,22 +295,22 @@ html, body, [class*="css"] {{
         font-size: 0.64rem;
     }}
     div[data-testid="stSelectbox"] > div {{
-    border-radius: 10px;
+        border-radius: 10px;
     }}
-
+    
     div[data-testid="stSelectbox"] [data-baseweb="select"] > div {{
         min-height: 34px;
         background: #F3F5F8;
         border-radius: 10px;
         border: 1px solid #E7EAF0;
-        font-size: 0.72rem;
+        font-size: 0.74rem;
         padding-top: 0;
         padding-bottom: 0;
         min-width: 100%;
     }}
-
+    
     div[data-testid="stSelectbox"] input {{
-        font-size: 0.72rem !important;
+        font-size: 0.74rem !important;
     }}
     
     div[data-testid="stSelectbox"] svg {{
