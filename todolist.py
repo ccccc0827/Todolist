@@ -776,7 +776,7 @@ with tab1:
     )
 
  
-    left_col, right_col = st.columns([0.8, 3.2], gap="small")
+    left_col, right_col = st.columns([0.95, 3.05], gap="small")
 
     with left_col:
         st.markdown(
