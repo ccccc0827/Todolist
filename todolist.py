@@ -624,7 +624,7 @@ def render_summary_card(frame: pd.DataFrame, selected_week: str):
         f'<div class="stats-box"><div class="stats-label" style="color:#A87B16;">進行中</div><div class="stats-num" style="color:#A87B16;">{doing}</div></div>'
         f'<div class="stats-box"><div class="stats-label" style="color:#BE7484;">未完成</div><div class="stats-num" style="color:#BE7484;">{todo}</div></div>'
         '</div>'
-        '<div style="font-weight:700; color:#685A87; margin: 6px 0 8px 0;">依分類統計</div>'
+        '<div style="font-weight:700; color:#685A87; margin: 6px 0 8px 0;">各分類達成率</div>'
         f'{"".join(rows)}'
         '<div style="margin-top:14px; padding:12px; border-radius:12px; background:#F8F5FF;">🌙 本週目標：保持節奏，穩定前進</div>'
         '</div>'
