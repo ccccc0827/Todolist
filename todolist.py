@@ -286,7 +286,28 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+def status_pill_html(status: str) -> str:
+    bg_map = {
+        "未完成": "#F9D9DF",
+        "進行中": "#F9E8B4",
+        "已完成": "#DDEED8",
+    }
+    text_map = {
+        "未完成": "#B56E7B",
+        "進行中": "#9B7417",
+        "已完成": "#5A8156",
+    }
 
+    bg = bg_map.get(status, "#EEEEEE")
+    color = text_map.get(status, "#666666")
+
+    return (
+        f'<div style="display:inline-block; '
+        f'padding:5px 12px; border-radius:999px; '
+        f'background:{bg}; color:{color}; '
+        f'font-size:0.78rem; font-weight:700; text-align:center; '
+        f'white-space:nowrap;">{status}</div>'
+    )
 # =========================
 # Data helpers
 # =========================
