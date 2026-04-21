@@ -431,8 +431,10 @@ def render_today_card(frame: pd.DataFrame, today_value: date):
     subset = frame[frame["date"] == today_value]
     categories = ["學習成長", "日常生活", "自我照顧"]
     blocks = []
+
     for cat in categories:
         cat_df = subset[subset["category"] == cat].head(5)
+
         if cat_df.empty:
             content = '<div class="small-note">今天這一類目前沒有任務。</div>'
         else:
@@ -440,23 +442,28 @@ def render_today_card(frame: pd.DataFrame, today_value: date):
                 f'<div class="mini-row"><span>☐ {row.task_name}</span>{badge(row.status)}</div>'
                 for row in cat_df.itertuples()
             )
-        blocks.append(
-            f'''
-            <div style="background:rgba(255,255,255,0.45); border:1px solid #D7E0EF; border-radius:14px; padding:12px;">
-                <div style="text-align:center; font-weight:700; margin-bottom:10px;">{cat}</div>
-                {content}
-            </div>
-            '''
-        )
-    return f"""
-    <div class="shell-card">
-        <div class="card-title today-title">📝 今日任務 ({today_value.month}/{today_value.day} {today_value.strftime('%a')})</div>
-        <div class="card-body">
-            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">{''.join(blocks)}</div>
-        </div>
-    </div>
-    """
 
+        block_html = (
+            '<div style="background:rgba(255,255,255,0.45); '
+            'border:1px solid #D7E0EF; border-radius:14px; padding:12px;">'
+            f'<div style="text-align:center; font-weight:700; margin-bottom:10px;">{cat}</div>'
+            f'{content}'
+            '</div>'
+        )
+        blocks.append(block_html)
+
+    return (
+        '<div class="shell-card">'
+        '<div class="card-title today-title">'
+        f'📝 今日任務 ({today_value.month}/{today_value.day} {today_value.strftime("%a")})'
+        '</div>'
+        '<div class="card-body">'
+        '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">'
+        f'{"".join(blocks)}'
+        '</div>'
+        '</div>'
+        '</div>'
+    )
 
 def render_summary_card(frame: pd.DataFrame, selected_week: str):
     subset = frame[frame["week"] == selected_week]
@@ -504,30 +511,28 @@ def render_summary_card(frame: pd.DataFrame, selected_week: str):
 def render_day_card(day_name: str, day_date: date | None, frame: pd.DataFrame, selected_week: str):
     subset = frame[(frame["week"] == selected_week) & (frame["weekday"] == day_name)]
     date_str = f"{day_date.month}/{day_date.day}" if day_date else "--/--"
+
     if subset.empty:
         rows = '<div class="small-note">這一天目前沒有任務，可以留白或新增安排。</div>'
     else:
         rows = "".join(
-            f'''
-            <div class="task-row">
-                <div class="task-name"><span class="checkbox"></span><span>{row.task_name}</span></div>
-                <div>{badge(row.status)}</div>
-            </div>
-            '''
+            f'<div class="task-row">'
+            f'<div class="task-name"><span class="checkbox"></span><span>{row.task_name}</span></div>'
+            f'<div>{badge(row.status)}</div>'
+            f'</div>'
             for row in subset.itertuples()
         )
-    return f"""
-    <div class="day-card">
-        <div class="day-header">
-            <div class="day-header-title">{day_name}.</div>
-            <div class="day-header-date">{date_str}</div>
-        </div>
-        <div class="day-head-row"><div>任務項目</div><div>狀態</div></div>
-        <div class="day-list">{rows}</div>
-    </div>
-    """
 
-
+    return (
+        '<div class="day-card">'
+        '<div class="day-header">'
+        f'<div class="day-header-title">{day_name}.</div>'
+        f'<div class="day-header-date">{date_str}</div>'
+        '</div>'
+        '<div class="day-head-row"><div>任務項目</div><div>狀態</div></div>'
+        f'<div class="day-list">{rows}</div>'
+        '</div>'
+    )
 # =========================
 # State
 # =========================
