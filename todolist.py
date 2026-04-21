@@ -55,9 +55,11 @@ html, body, [class*="css"] {{
         color: {TEXT};
     }}
    .main .block-container {{
-    max-width: 1750px;
-    padding-top: 0.8rem;
-    padding-bottom: 1.8rem;
+    max-width: 100%;
+    padding-top: 0.6rem;
+    padding-bottom: 1.4rem;
+    padding-left: 1.2rem;
+    padding-right: 1.2rem;
 }}
 
     .top-wrap {{
@@ -285,7 +287,27 @@ html, body, [class*="css"] {{
         font-size: 0.64rem;
     }}
     div[data-testid="stSelectbox"] > div {{
-        border-radius: 12px;
+    border-radius: 10px;
+    }}
+
+    div[data-testid="stSelectbox"] [data-baseweb="select"] > div {{
+        min-height: 34px;
+        background: #F3F5F8;
+        border-radius: 10px;
+        border: 1px solid #E7EAF0;
+        font-size: 0.72rem;
+        padding-top: 0;
+        padding-bottom: 0;
+        min-width: 100%;
+    }}
+
+    div[data-testid="stSelectbox"] input {{
+        font-size: 0.72rem !important;
+    }}
+    
+    div[data-testid="stSelectbox"] svg {{
+        width: 13px;
+        height: 13px;
     }}
     </style>
     """,
@@ -432,7 +454,8 @@ with st.sidebar:
 
                 updated_df = pd.concat([current_df, new_row], ignore_index=True)
                 updated_df = normalize_task_dates(updated_df)
-
+                updated_df.to_csv(DEFAULT_CSV, index=False)
+                
                 st.cache_data.clear()
                 st.success("任務已新增")
                 st.rerun()
@@ -741,7 +764,7 @@ with tab1:
 outer_left, main_area, outer_right = st.columns([0.08, 0.84, 0.08])
 
 with main_area:   
-    left_col, right_col = st.columns([0.95, 2.55], gap="small")
+    left_col, right_col = st.columns([0.68, 3.32], gap="small")
 
     with left_col:
         st.markdown(
@@ -754,7 +777,7 @@ with main_area:
         st.markdown(render_summary_card(df, selected_week), unsafe_allow_html=True)
 
     with right_col:
-        c1, c2, c3, c4 = st.columns([0.9, 1.0, 1.0, 1.2])
+        c1, c2, c3, c4 = st.columns([0.7, 1.0, 1.0, 1.3])
 
         with c1:
             st.markdown(
