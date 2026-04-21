@@ -317,6 +317,20 @@ html, body, [class*="css"] {{
         width: 13px;
         height: 13px;
     }}
+    .today-scroll-wrap {{
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 4px;
+    }}
+
+    .today-scroll-wrap::-webkit-scrollbar {{
+        width: 6px;
+    }}
+    
+    .today-scroll-wrap::-webkit-scrollbar-thumb {{
+        background: #D8DDE6;
+        border-radius: 999px;
+    }}
     </style>
     """,
     unsafe_allow_html=True,
@@ -563,13 +577,14 @@ def render_today_card(frame: pd.DataFrame, today_value: date):
         f'📝 今日任務 ({today_value.month}/{today_value.day} {today_value.strftime("%a")})'
         '</div>'
         '<div class="card-body">'
+        '<div class="today-scroll-wrap">'
         '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:12px;">'
         f'{"".join(blocks)}'
         '</div>'
         '</div>'
         '</div>'
+        '</div>'
     )
-
 def render_summary_card(frame: pd.DataFrame, selected_week: str):
     subset = frame[frame["week"] == selected_week]
     total = len(subset)
