@@ -657,31 +657,18 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
         with top_right:
             st.markdown(f"**{day_date.month}/{day_date.day}**")
 
-        st.markdown("**任務項目　　狀態**")
+        st.markdown("**任務項目　　　　　　狀態**")
 
         if subset.empty:
             st.info("這一天目前沒有任務，可以留白或新增安排。")
         else:
             for row in subset.itertuples():
-                c1, c2, c3 = st.columns([0.08, 0.56, 0.36])
+                c1, c2 = st.columns([0.62, 0.38])
 
                 with c1:
-                    checked = row.status == "已完成"
-                    clicked = st.checkbox(
-                        "",
-                        value=checked,
-                        key=f"check_{row.id}",
-                        label_visibility="collapsed"
-                    )
-                    target_status = "已完成" if clicked else "未完成"
-                    if target_status != row.status:
-                        update_task_status(row.id, target_status)
-                        st.rerun()
-
-                with c2:
                     st.write(row.task_name)
 
-                with c3:
+                with c2:
                     new_status = st.selectbox(
                         "狀態",
                         ["未完成", "進行中", "已完成"],
@@ -696,8 +683,16 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
         with st.expander(f"➕ 新增 {day_name} 任務"):
             with st.form(f"form_{day_name}_{day_date}"):
                 task_name = st.text_input("任務名稱", key=f"new_task_{day_name}_{day_date}")
-                category = st.selectbox("分類", ["學習成長", "日常生活", "自我照顧"], key=f"cat_{day_name}_{day_date}")
-                status = st.selectbox("初始狀態", ["未完成", "進行中", "已完成"], key=f"init_status_{day_name}_{day_date}")
+                category = st.selectbox(
+                    "分類",
+                    ["學習成長", "日常生活", "自我照顧"],
+                    key=f"cat_{day_name}_{day_date}"
+                )
+                status = st.selectbox(
+                    "初始狀態",
+                    ["未完成", "進行中", "已完成"],
+                    key=f"init_status_{day_name}_{day_date}"
+                )
                 note = st.text_area("備註", key=f"note_{day_name}_{day_date}")
                 submitted = st.form_submit_button("新增任務")
 
