@@ -285,6 +285,42 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+tab1, tab2, tab3 = st.tabs(["Dashboard", "Task Manager", "Weekly Planner"])
+with tab2:
+    st.subheader("Task Manager")
+
+    filter_col1, filter_col2 = st.columns(2)
+    with filter_col1:
+        category_filter = st.selectbox("分類篩選", ["全部", "學習成長", "日常生活", "自我照顧"])
+    with filter_col2:
+        status_filter = st.selectbox("狀態篩選", ["全部", "未完成", "進行中", "已完成"])
+
+    edit_df = df.copy()
+
+    if category_filter != "全部":
+        edit_df = edit_df[edit_df["category"] == category_filter]
+    if status_filter != "全部":
+        edit_df = edit_df[edit_df["status"] == status_filter]
+
+    st.dataframe(edit_df, use_container_width=True)
+with tab3:
+    st.subheader("新增本週任務")
+
+    with st.form("weekly_add_form", clear_on_submit=True):
+        task_name = st.text_input("任務名稱")
+        category = st.selectbox("分類", ["學習成長", "日常生活", "自我照顧"])
+        status = st.selectbox("狀態", ["未完成", "進行中", "已完成"])
+        task_date = st.date_input("日期", value=monday)
+        note = st.text_area("備註")
+        submitted = st.form_submit_button("新增")
+
+        if submitted:
+            if task_name.strip():
+                add_task(task_name, category, status, task_date, note)
+                st.success("任務已新增")
+                st.rerun()
+            else:
+                st.warning("請輸入任務名稱")
 
 # =========================
 # Data helpers
@@ -617,6 +653,97 @@ st.markdown(
 # =========================
 # Layout
 # =========================
+def save_data(df: pd.DataFrame, path: str = DEFAULT_CSV):
+    df_to_save = df.copy()
+    df_to_save.to_csv(path, index=False)
+    st.cache_data.clear()
+
+
+def update_task_status(task_id: int, new_status: str, path: str = DEFAULT_CSV):
+    current_df = load_data(path).copy()
+    current_df.loc[current_df["id"] == task_id, "status"] = new_status
+    save_data(current_df, path)
+
+
+def add_task(task_name: str, category: str, status: str, task_date: date, note: str = "", path: str = DEFAULT_CSV):
+    current_df = load_data(path).copy()
+    new_id = 1 if current_df.empty else int(current_df["id"].max()) + 1
+
+    new_row = pd.DataFrame([{
+        "id": new_id,
+        "task_name": task_name.strip(),
+        "category": category,
+        "status": status,
+        "date": task_date,
+        "week": "",
+        "weekday": "",
+        "note": note.strip(),
+    }])
+
+    updated_df = pd.concat([current_df, new_row], ignore_index=True)
+    updated_df = normalize_task_dates(updated_df)
+    save_data(updated_df, path)
+def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selected_week: str):
+    subset = frame[(frame["week"] == selected_week) & (frame["weekday"] == day_name)].copy()
+
+    with st.container(border=True):
+        top_left, top_right = st.columns([2, 1])
+        with top_left:
+            st.markdown(f"## {day_name}.")
+        with top_right:
+            st.markdown(f"**{day_date.month}/{day_date.day}**")
+
+        st.markdown("**任務項目　　狀態**")
+
+        if subset.empty:
+            st.info("這一天目前沒有任務，可以留白或新增安排。")
+        else:
+            for row in subset.itertuples():
+                c1, c2, c3 = st.columns([0.08, 0.56, 0.36])
+
+                with c1:
+                    checked = row.status == "已完成"
+                    clicked = st.checkbox(
+                        "",
+                        value=checked,
+                        key=f"check_{row.id}",
+                        label_visibility="collapsed"
+                    )
+                    target_status = "已完成" if clicked else "未完成"
+                    if target_status != row.status:
+                        update_task_status(row.id, target_status)
+                        st.rerun()
+
+                with c2:
+                    st.write(row.task_name)
+
+                with c3:
+                    new_status = st.selectbox(
+                        "狀態",
+                        ["未完成", "進行中", "已完成"],
+                        index=["未完成", "進行中", "已完成"].index(row.status),
+                        key=f"status_{row.id}",
+                        label_visibility="collapsed"
+                    )
+                    if new_status != row.status:
+                        update_task_status(row.id, new_status)
+                        st.rerun()
+
+        with st.expander(f"➕ 新增 {day_name} 任務"):
+            with st.form(f"form_{day_name}_{day_date}"):
+                task_name = st.text_input("任務名稱", key=f"new_task_{day_name}_{day_date}")
+                category = st.selectbox("分類", ["學習成長", "日常生活", "自我照顧"], key=f"cat_{day_name}_{day_date}")
+                status = st.selectbox("初始狀態", ["未完成", "進行中", "已完成"], key=f"init_status_{day_name}_{day_date}")
+                note = st.text_area("備註", key=f"note_{day_name}_{day_date}")
+                submitted = st.form_submit_button("新增任務")
+
+                if submitted:
+                    if task_name.strip():
+                        add_task(task_name, category, status, day_date, note)
+                        st.success("已新增任務")
+                        st.rerun()
+                    else:
+                        st.warning("請輸入任務名稱")
 left_col, right_col = st.columns([1.05, 2.55], gap="large")
 
 with left_col:
@@ -683,19 +810,19 @@ with right_col:
 
     week_dates = [monday + timedelta(days=i) for i in range(7)]
 
-    top_days = st.columns(4, gap="medium")
-    for idx, day_name in enumerate(["Mon", "Tue", "Wed", "Thu"]):
-        with top_days[idx]:
-            st.markdown(render_day_card(day_name, week_dates[idx], df, selected_week), unsafe_allow_html=True)
+ top_days = st.columns(4, gap="medium")
+for idx, day_name in enumerate(["Mon", "Tue", "Wed", "Thu"]):
+    with top_days[idx]:
+        render_day_panel(day_name, week_dates[idx], df, selected_week)
 
-    st.markdown('<div style="height:14px"></div>', unsafe_allow_html=True)
-    bottom_left, bottom_mid, bottom_right, memo_col = st.columns([1, 1, 1, 0.82], gap="medium")
-    with bottom_left:
-        st.markdown(render_day_card("Fri", week_dates[4], df, selected_week), unsafe_allow_html=True)
-    with bottom_mid:
-        st.markdown(render_day_card("Sat", week_dates[5], df, selected_week), unsafe_allow_html=True)
-    with bottom_right:
-        st.markdown(render_day_card("Sun", week_dates[6], df, selected_week), unsafe_allow_html=True)
+st.markdown("")
+bottom_left, bottom_mid, bottom_right, memo_col = st.columns([1, 1, 1, 0.82], gap="medium")
+with bottom_left:
+    render_day_panel("Fri", week_dates[4], df, selected_week)
+with bottom_mid:
+    render_day_panel("Sat", week_dates[5], df, selected_week)
+with bottom_right:
+    render_day_panel("Sun", week_dates[6], df, selected_week
     with memo_col:
         st.markdown(
             '''
