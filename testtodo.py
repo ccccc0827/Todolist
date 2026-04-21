@@ -997,7 +997,6 @@ with tab1:
             <div class="memo-box">
                 <div class="memo-title">待讀書單 ♡</div>
                 {reading_preview_html}
-            </div>
             """)
         
             st.markdown(memo_html, unsafe_allow_html=True)
