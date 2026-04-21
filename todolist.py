@@ -686,6 +686,11 @@ def add_task(task_name: str, category: str, status: str, task_date: date, note: 
     updated_df = normalize_task_dates(updated_df)
     save_data(updated_df, path)
 
+def delete_task(task_id: int, path: str = DEFAULT_CSV):
+    current_df = load_data(path).copy()
+    current_df = current_df[current_df["id"] != task_id].copy()
+    current_df = normalize_task_dates(current_df)
+    save_data(current_df, path)
 
 def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selected_week: str):
     subset = frame[(frame["week"] == selected_week) & (frame["weekday"] == day_name)].copy()
@@ -704,10 +709,10 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
         else:
             for row in subset.itertuples():
                 c1, c2, c3 = st.columns([0.50, 0.34, 0.16])
-            
+
                 with c1:
                     st.write(row.task_name)
-            
+
                 with c2:
                     new_status = st.selectbox(
                         "狀態",
@@ -719,21 +724,24 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                     if new_status != row.status:
                         update_task_status(row.id, new_status)
                         st.rerun()
-            
+
                 with c3:
                     if st.button("刪除", key=f"delete_{row.id}", use_container_width=True):
                         st.session_state[f"confirm_delete_{row.id}"] = True
-        
-        if st.session_state.get(f"confirm_delete_{row.id}", False):
-            confirm_col1, confirm_col2 = st.columns([1, 1])
-            with confirm_col1:
-                if st.button("確定", key=f"confirm_yes_{row.id}"):
-                    delete_task(row.id)
-                    st.rerun()
-            with confirm_col2:
-                if st.button("取消", key=f"confirm_no_{row.id}"):
-                    st.session_state[f"confirm_delete_{row.id}"] = False
-                    st.rerun()
+
+                if st.session_state.get(f"confirm_delete_{row.id}", False):
+                    confirm_col1, confirm_col2 = st.columns([1, 1])
+
+                    with confirm_col1:
+                        if st.button("確定", key=f"confirm_yes_{row.id}"):
+                            delete_task(row.id)
+                            st.rerun()
+
+                    with confirm_col2:
+                        if st.button("取消", key=f"confirm_no_{row.id}"):
+                            st.session_state[f"confirm_delete_{row.id}"] = False
+                            st.rerun()
+
         with st.expander(f"➕ 新增 {day_name} 任務"):
             with st.form(f"form_{day_name}_{day_date}"):
                 task_name = st.text_input("任務名稱", key=f"new_task_{day_name}_{day_date}")
