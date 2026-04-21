@@ -686,6 +686,22 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                         st.rerun()
                     else:
                         st.warning("請輸入任務名稱")
+div[data-testid="stSelectbox"] [data-baseweb="select"] > div {
+    min-height: 34px;
+    background: #F3F5F8;
+    border-radius: 12px;
+    border: 1px solid #E7EAF0;
+    font-size: 0.82rem;
+}
+
+div[data-testid="stSelectbox"] input {
+    font-size: 0.82rem !important;
+}
+
+div[data-testid="stSelectbox"] svg {
+    width: 16px;
+    height: 16px;
+}
 # =========================
 # State
 # =========================
