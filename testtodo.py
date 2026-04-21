@@ -813,7 +813,7 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
             st.info("這一天目前沒有任務，可以留白或新增安排。")
         else:
             for row in subset.itertuples():
-                c1, c2, c3 = st.columns([0.5, 0.55, 0.2])
+                c1, c2, c3 = st.columns([0.45, 0.64, 0.18])
                 with c1:
                     st.write(row.task_name)
                 with c2:
