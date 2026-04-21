@@ -823,12 +823,12 @@ with bottom_mid:
     render_day_panel("Sat", week_dates[5], df, selected_week)
 with bottom_right:
     render_day_panel("Sun", week_dates[6], df, selected_week)
-    with memo_col:
-        st.markdown(
-            '''
-            <div class="memo-box">
-                <div class="memo-title">本週備註 ♡</div>
-                <div class="small-note">
+with memo_col:
+    st.markdown(
+        '''
+        <div class="memo-box">
+             <div class="memo-title">本週備註 ♡</div>
+            <div class="small-note">
                     專注在重要的事，<br>
                     不追求完美，<br>
                     但求每天有進步。<br><br>
@@ -836,11 +836,11 @@ with bottom_right:
                     • 本週提醒<br>
                     • 小小反思<br>
                     • 想記住的一句話
-                </div>
-            </div>
-            ''',
-            unsafe_allow_html=True,
-        )
+               </div>
+        </div>
+        ''',
+        unsafe_allow_html=True,
+    )
 
 st.markdown(
     '''
