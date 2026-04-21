@@ -703,23 +703,37 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
             st.info("這一天目前沒有任務，可以留白或新增安排。")
         else:
             for row in subset.itertuples():
-                c1, c2 = st.columns([0.58, 0.42])
-
-                with c1:
-                    st.write(row.task_name)
-
-                with c2:
-                    new_status = st.selectbox(
-                        "狀態",
-                        ["未完成", "進行中", "已完成"],
-                        index=["未完成", "進行中", "已完成"].index(row.status),
-                        key=f"status_{row.id}",
-                        label_visibility="collapsed"
-                    )
-                    if new_status != row.status:
-                        update_task_status(row.id, new_status)
-                        st.rerun()
-
+            c1, c2, c3 = st.columns([0.50, 0.34, 0.16])
+        
+            with c1:
+                st.write(row.task_name)
+        
+            with c2:
+                new_status = st.selectbox(
+                    "狀態",
+                    ["未完成", "進行中", "已完成"],
+                    index=["未完成", "進行中", "已完成"].index(row.status),
+                    key=f"status_{row.id}",
+                    label_visibility="collapsed"
+                )
+                if new_status != row.status:
+                    update_task_status(row.id, new_status)
+                    st.rerun()
+        
+            with c3:
+            if st.button("刪除", key=f"delete_{row.id}", use_container_width=True):
+                st.session_state[f"confirm_delete_{row.id}"] = True
+        
+        if st.session_state.get(f"confirm_delete_{row.id}", False):
+            confirm_col1, confirm_col2 = st.columns([1, 1])
+            with confirm_col1:
+                if st.button("確定", key=f"confirm_yes_{row.id}"):
+                    delete_task(row.id)
+                    st.rerun()
+            with confirm_col2:
+                if st.button("取消", key=f"confirm_no_{row.id}"):
+                    st.session_state[f"confirm_delete_{row.id}"] = False
+                    st.rerun()
         with st.expander(f"➕ 新增 {day_name} 任務"):
             with st.form(f"form_{day_name}_{day_date}"):
                 task_name = st.text_input("任務名稱", key=f"new_task_{day_name}_{day_date}")
@@ -937,7 +951,26 @@ with tab2:
     if status_filter != "全部":
         edit_df = edit_df[edit_df["status"] == status_filter]
 
-    st.dataframe(edit_df, use_container_width=True)
+    show_df = edit_df.copy()
+    show_df["刪除"] = False
+
+    edited = st.data_editor(
+        show_df,
+        use_container_width=True,
+        hide_index=True,
+        disabled=["id", "task_name", "category", "status", "date", "week", "weekday", "note"]
+    )
+
+    delete_ids = edited.loc[edited["刪除"] == True, "id"].tolist()
+
+    if delete_ids:
+        if st.button("刪除選取任務"):
+            current_df = load_data(DEFAULT_CSV).copy()
+            current_df = current_df[~current_df["id"].isin(delete_ids)].copy()
+            current_df = normalize_task_dates(current_df)
+            save_data(current_df, DEFAULT_CSV)
+            st.success("已刪除選取任務")
+            st.rerun()
 
 
 with tab3:
