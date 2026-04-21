@@ -810,7 +810,7 @@ with right_col:
 
     week_dates = [monday + timedelta(days=i) for i in range(7)]
 
- top_days = st.columns(4, gap="medium")
+top_days = st.columns(4, gap="medium")
 for idx, day_name in enumerate(["Mon", "Tue", "Wed", "Thu"]):
     with top_days[idx]:
         render_day_panel(day_name, week_dates[idx], df, selected_week)
