@@ -597,25 +597,23 @@ def render_summary_card(frame: pd.DataFrame, selected_week: str):
     doing = int((subset["status"] == "進行中").sum())
     todo = int((subset["status"] == "未完成").sum())
 
-    cat_counts = {
-        "學習成長": int((subset["category"] == "學習成長").sum()),
-        "日常生活": int((subset["category"] == "日常生活").sum()),
-        "自我照顧": int((subset["category"] == "自我照顧").sum()),
-    }
-
-    max_count = max(cat_counts.values()) if cat_counts else 1
+    categories = ["學習成長", "日常生活", "自我照顧"]
     rows = []
-
-    for label, value in cat_counts.items():
-        width = 0 if max_count == 0 else int(value / max_count * 100)
+    
+    for label in categories:
+        cat_df = subset[subset["category"] == label]
+        total_cat = len(cat_df)
+        done_cat = int((cat_df["status"] == "已完成").sum())
+    
+        rate = 0 if total_cat == 0 else round(done_cat / total_cat * 100)
+    
         rows.append(
             '<div class="progress-row">'
             f'<div>{label}</div>'
-            f'<div class="bar-bg"><div class="bar-fill" style="width:{width}%; background:{CATEGORY_BAR[label]};"></div></div>'
-            f'<div style="text-align:right;">{value}</div>'
+            f'<div class="bar-bg"><div class="bar-fill" style="width:{rate}%; background:{CATEGORY_BAR[label]};"></div></div>'
+            f'<div style="text-align:right;">{rate}%</div>'
             '</div>'
         )
-
     return (
         '<div class="shell-card">'
         f'<div class="card-title summary-title">📊 本週任務摘要 ({selected_week})</div>'
