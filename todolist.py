@@ -575,6 +575,95 @@ def render_day_card(day_name: str, day_date: date | None, frame: pd.DataFrame, s
         f'<div class="day-list">{rows}</div>'
         '</div>'
     )
+def save_data(df: pd.DataFrame, path: str = DEFAULT_CSV):
+    df_to_save = df.copy()
+    df_to_save.to_csv(path, index=False)
+    st.cache_data.clear()
+
+
+def update_task_status(task_id: int, new_status: str, path: str = DEFAULT_CSV):
+    current_df = load_data(path).copy()
+    current_df.loc[current_df["id"] == task_id, "status"] = new_status
+    current_df = normalize_task_dates(current_df)
+    save_data(current_df, path)
+
+
+def add_task(task_name: str, category: str, status: str, task_date: date, note: str = "", path: str = DEFAULT_CSV):
+    current_df = load_data(path).copy()
+    new_id = 1 if current_df.empty else int(current_df["id"].max()) + 1
+
+    new_row = pd.DataFrame([{
+        "id": new_id,
+        "task_name": task_name.strip(),
+        "category": category,
+        "status": status,
+        "date": task_date,
+        "week": "",
+        "weekday": "",
+        "note": note.strip(),
+    }])
+
+    updated_df = pd.concat([current_df, new_row], ignore_index=True)
+    updated_df = normalize_task_dates(updated_df)
+    save_data(updated_df, path)
+
+
+def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selected_week: str):
+    subset = frame[(frame["week"] == selected_week) & (frame["weekday"] == day_name)].copy()
+
+    with st.container(border=True):
+        top_left, top_right = st.columns([2, 1])
+        with top_left:
+            st.markdown(f"## {day_name}.")
+        with top_right:
+            st.markdown(f"**{day_date.month}/{day_date.day}**")
+
+        st.markdown("**任務項目　　　　　　狀態**")
+
+        if subset.empty:
+            st.info("這一天目前沒有任務，可以留白或新增安排。")
+        else:
+            for row in subset.itertuples():
+                c1, c2 = st.columns([0.62, 0.38])
+
+                with c1:
+                    st.write(row.task_name)
+
+                with c2:
+                    new_status = st.selectbox(
+                        "狀態",
+                        ["未完成", "進行中", "已完成"],
+                        index=["未完成", "進行中", "已完成"].index(row.status),
+                        key=f"status_{row.id}",
+                        label_visibility="collapsed"
+                    )
+                    if new_status != row.status:
+                        update_task_status(row.id, new_status)
+                        st.rerun()
+
+        with st.expander(f"➕ 新增 {day_name} 任務"):
+            with st.form(f"form_{day_name}_{day_date}"):
+                task_name = st.text_input("任務名稱", key=f"new_task_{day_name}_{day_date}")
+                category = st.selectbox(
+                    "分類",
+                    ["學習成長", "日常生活", "自我照顧"],
+                    key=f"cat_{day_name}_{day_date}"
+                )
+                status = st.selectbox(
+                    "初始狀態",
+                    ["未完成", "進行中", "已完成"],
+                    key=f"init_status_{day_name}_{day_date}"
+                )
+                note = st.text_area("備註", key=f"note_{day_name}_{day_date}")
+                submitted = st.form_submit_button("新增任務")
+
+                if submitted:
+                    if task_name.strip():
+                        add_task(task_name, category, status, day_date, note)
+                        st.success("已新增任務")
+                        st.rerun()
+                    else:
+                        st.warning("請輸入任務名稱")
 # =========================
 # State
 # =========================
