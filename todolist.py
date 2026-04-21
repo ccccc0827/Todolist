@@ -726,7 +726,7 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                         st.rerun()
 
                 with c3:
-                    if st.button("刪除", key=f"delete_{row.id}", use_container_width=True):
+                    if st.button("🗑️", key=f"delete_{row.id}", use_container_width=True):
                         st.session_state[f"confirm_delete_{row.id}"] = True
 
                 if st.session_state.get(f"confirm_delete_{row.id}", False):
