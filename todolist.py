@@ -283,6 +283,32 @@ st.markdown(
         border-radius: 12px;
     }}
     </style>
+    div[data-testid="stSelectbox"] > div {
+    border-radius: 12px;
+}
+
+div[data-testid="stSelectbox"] [data-baseweb="select"] > div {{
+    min-height: 34px;
+    background: #F3F5F8;
+    border-radius: 12px;
+    border: 1px solid #E7EAF0;
+    font-size: 0.82rem;
+    padding-top: 0px;
+    padding-bottom: 0px;
+}}
+
+div[data-testid="stSelectbox"] input {
+    font-size: 0.82rem !important;
+}
+
+div[data-testid="stSelectbox"] svg {
+    width: 15px;
+    height: 15px;
+}
+
+div[data-testid="stSelectbox"] {
+    margin-bottom: 0.15rem;
+}
     """,
     unsafe_allow_html=True,
 )
