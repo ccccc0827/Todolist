@@ -943,7 +943,7 @@ with tab1:
         unsafe_allow_html=True,
     )
 
-    left_col, right_col = st.columns([0.95, 3.2], gap="small")
+    left_col, right_col = st.columns([0.95, 3.5], gap="small")
 
     with left_col:
         st.markdown(render_calendar_html(focus_year, focus_month, today_local(), selected_week, monday, sunday), unsafe_allow_html=True)
@@ -953,7 +953,7 @@ with tab1:
         st.markdown(render_summary_card(df, selected_week), unsafe_allow_html=True)
 
     with right_col:
-        c1, c2, c3, c4 = st.columns([0.55, 1.05, 1.05, 1.35])
+        c1, c2, c3, c4 = st.columns([0.55, 1.05, 1.05, 1.25])
 
         with c1:
             st.markdown('<div class="small-note" style="margin-top:8px;">本週目標：持續進步，累積成更好的自己。</div>', unsafe_allow_html=True)
