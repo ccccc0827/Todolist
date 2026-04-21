@@ -723,7 +723,7 @@ with tab1:
         st.markdown(render_summary_card(df, selected_week), unsafe_allow_html=True)
 
     with right_col:
-        c1, c2, c3, c4 = st.columns([1.2, 0.9, 1.0, 1.4])
+        c1, c2, c3, c4 = st.columns([1.0, 1.1, 1.15, 1.35])
 
         with c1:
             st.markdown(
