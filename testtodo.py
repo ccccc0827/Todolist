@@ -353,7 +353,7 @@ div[data-testid="stButton"] > button {{
 }}
 
 .task-card-select {{
-    font-size: 1rem;
+    font-size: 0.5rem;
 }}
 
 .task-card-select h2 {{
@@ -404,6 +404,28 @@ div[data-testid="stButton"] > button {{
 .task-card-select p,
 .task-card-select label {{
     font-size: 0.72rem !important;
+}}
+.task-card-select .status-wrap {{
+    transform: scale(0.78);
+    transform-origin: left center;
+    width: 110px;
+    margin-right: -22px;
+}}
+
+.task-card-select .status-wrap div[data-testid="stSelectbox"] {{
+    width: 110px !important;
+    min-width: 110px !important;
+    max-width: 110px !important;
+}}
+
+.task-card-select .status-wrap div[data-testid="stSelectbox"] [data-baseweb="select"] {{
+    width: 110px !important;
+    min-width: 110px !important;
+}}
+
+.task-card-select .status-wrap div[data-testid="stSelectbox"] [data-baseweb="select"] > div {{
+    min-height: 24px !important;
+    height: 24px !important;
 }}
 
 div[data-testid="stButton"] > button {{
@@ -1004,6 +1026,7 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                     if pd.notna(row.deadline):
                         st.caption(get_deadline_label(row.deadline, row.status))
                 with c2:
+                    st.markdown('<div class="status-wrap">', unsafe_allow_html=True)
                     new_status = st.selectbox(
                         "狀態",
                         ["未完成", "進行中", "已完成"],
@@ -1011,6 +1034,8 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                         key=f"status_{row.id}",
                         label_visibility="collapsed"
                     )
+                    st.markdown('</div>', unsafe_allow_html=True)
+                
                     if new_status != row.status:
                         update_task_status(row.id, new_status)
                         st.rerun()
