@@ -987,17 +987,17 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
             st.info("")
         else:
             for row in subset.itertuples():
-                c1, c2, c3, c4, c5 = st.columns([0.6, 1.2, 0.15, 0.15, 0.15], gap="small")
+                c1, c2, c3, c4, c5 = st.columns([0.6, 1.3, 0.18, 0.18, 0.18], gap="small")
                 with c1:
                     if bool(row.carry_over):
                         st.markdown(
-                            f"<span style='font-size:0.8rem; color:#B56E7B; text-decoration: line-through; text-decoration-color:#D9534F; text-decoration-thickness:2px;'>{row.task_name}</span>",
+                            f"<span style='font-size:0.8rem; color:#B56E7B; text-decoration: line-through; text-decoration-color:#D9534F; text-decoration-thickness:1px;'>{row.task_name}</span>",
                             unsafe_allow_html=True
                         )
                         st.caption("已延到下一天")
                     else:
                         st.markdown(
-                            f"<div style='font-size:0.8rem; font-weight:600; line-height:1.3;'>{row.task_name}</div>",
+                            f"<div style='font-size:0.8rem; font-weight:600; line-height:1.2;'>{row.task_name}</div>",
                             unsafe_allow_html=True
                         )
                 
