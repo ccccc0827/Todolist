@@ -991,7 +991,7 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                 with c1:
                     if bool(row.carry_over):
                         st.markdown(
-                            f"<span style='font-size:0.82rem; color:#B56E7B; text-decoration: line-through; text-decoration-color:#D9534F; text-decoration-thickness:2px;'>{row.task_name}</span>",
+                            f"<span style='font-size:1rem; color:#B56E7B; text-decoration: line-through; text-decoration-color:#D9534F; text-decoration-thickness:2px;'>{row.task_name}</span>",
                             unsafe_allow_html=True
                         )
                         st.caption("已延到下一天")
