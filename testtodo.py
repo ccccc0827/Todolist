@@ -1240,13 +1240,13 @@ with tab5:
         fig = go.Figure()
             
             # 先把整個月所有日期放進 y 軸
-            fig.add_trace(go.Scatter(
-                x=[datetime(2000, 1, 1, 18, 0)] * len(y_order),
-                y=y_order,
-                mode="markers",
-                marker=dict(size=1, color="rgba(0,0,0,0)"),
-                hoverinfo="skip",
-                showlegend=False
+          fig.add_trace(go.Scatter(
+            x=[datetime(2000, 1, 1, 18, 0)] * len(y_order),
+            y=y_order,
+            mode="markers",
+            marker=dict(size=1, color="rgba(0,0,0,0)"),
+            hoverinfo="skip",
+            showlegend=False
             ))
             
             for row in plot_df.itertuples():
