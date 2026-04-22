@@ -657,11 +657,21 @@ def delete_task(task_id: int, path: str = DEFAULT_CSV):
 def update_task(task_id: int, updates: dict, path: str = DEFAULT_CSV):
     current_df = load_data(path).copy()
 
+    matched_index = current_df.index[current_df["id"] == task_id]
+    if len(matched_index) == 0:
+        return
+
+    idx = matched_index[0]
+
     for col, value in updates.items():
-        current_df.loc[current_df["id"] == task_id, col] = value
+        if col in ["date", "deadline"] and value is not None:
+            current_df.at[idx, col] = pd.to_datetime(value).date()
+        else:
+            current_df.at[idx, col] = value
 
     current_df = normalize_task_dates(current_df)
     save_task_data(current_df, path)
+    
 def carry_task_to_next_day(task_id: int, path: str = DEFAULT_CSV):
     current_df = load_data(path).copy()
     task_row = current_df[current_df["id"] == task_id]
@@ -1008,10 +1018,11 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                                 ["學習成長", "日常生活", "自我照顧"],
                                 index=["學習成長", "日常生活", "自我照顧"].index(row.category)
                             )
-                            new_date = st.date_input("安排日期", value=row.date)
+                            new_date = st.date_input("安排日期", value=row.date, key=f"edit_date_{row.id}")
                             new_deadline = st.date_input(
                                 "Deadline",
                                 value=row.deadline if pd.notna(row.deadline) else row.date
+                                key=f"edit_deadline_{row.id}"
                             )
                             new_note = st.text_area("備註", value=row.note if pd.notna(row.note) else "")
                             col_save, col_cancel = st.columns(2)
@@ -1047,7 +1058,7 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                 )
                 if submitted:
                     if task_name.strip():
-                        add_task(task_name, category, status, day_date, deadline, note)
+                        add_task(task_name, category, status, task_date, deadline=None, note="", carry_over=False)
                         st.success("已新增任務")
                         st.rerun()
                     else:
@@ -1096,7 +1107,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown("**CSV 欄位**")
-    st.code("id,task_name,category,status,date,week,weekday,note", language="text")
+    st.code("id,task_name,category,status,date,deadline,week,weekday,note,carry_over", language="text")
 
 
 # =========================
