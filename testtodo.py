@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 import calendar
 from pathlib import Path
 from textwrap import dedent
-import plotly.express as px
+import plotly.graph_objects as go
 
 st.set_page_config(page_title="Weekly Planning Dashboard", layout="wide")
 
@@ -497,7 +497,7 @@ def prepare_sleep_gantt_data(frame: pd.DataFrame) -> pd.DataFrame:
         t = datetime.strptime(str(time_str), "%H:%M")
         anchor = datetime(2000, 1, 1, t.hour, t.minute)
 
-        # 00:00~11:59 視為隔天凌晨
+        # 凌晨時間視為隔天
         if t.hour < 12:
             anchor += timedelta(days=1)
 
@@ -506,7 +506,6 @@ def prepare_sleep_gantt_data(frame: pd.DataFrame) -> pd.DataFrame:
     df["gantt_start"] = df["sleep_time"].apply(to_anchor_datetime)
     df["gantt_end"] = df["wake_time"].apply(to_anchor_datetime)
 
-    # 如果結束時間早於開始時間，代表跨日，補一天
     df.loc[df["gantt_end"] <= df["gantt_start"], "gantt_end"] += pd.Timedelta(days=1)
 
     return df.sort_values("date")
@@ -1190,16 +1189,15 @@ with tab5:
     sleep_tab, habit_tab = st.tabs(["睡眠紀錄表", "Habit Tracker"])
 
     with sleep_tab:
-        st.markdown("#### 月統計睡眠甘特圖")
+           st.markdown("#### 月統計睡眠圖")
 
         sleep_gantt_df = prepare_sleep_gantt_data(sleep_df)
     
         if sleep_gantt_df.empty:
-            st.info("目前還沒有睡眠紀錄，無法顯示月統計甘特圖。")
+            st.info("目前還沒有睡眠紀錄，無法顯示月統計圖。")
         else:
             month_options = sorted(sleep_gantt_df["month_key"].dropna().unique().tolist(), reverse=True)
             current_month = today_local().strftime("%Y-%m")
-    
             default_month_index = month_options.index(current_month) if current_month in month_options else 0
     
             selected_sleep_month = st.selectbox(
@@ -1210,46 +1208,78 @@ with tab5:
                 key="sleep_month_selector"
             )
     
-            month_df = sleep_gantt_df[sleep_gantt_df["month_key"] == selected_sleep_month].copy()
+            selected_month_start = pd.to_datetime(f"{selected_sleep_month}-01")
+            next_month_start = selected_month_start + pd.offsets.MonthBegin(1)
+            month_end = next_month_start - pd.Timedelta(days=1)
     
-            if month_df.empty:
-                st.info("這個月份目前沒有睡眠資料。")
-            else:
-                fig = px.timeline(
-                    month_df,
-                    x_start="gantt_start",
-                    x_end="gantt_end",
-                    y="date_label",
-                    color="quality",
-                    hover_data={
-                        "sleep_time": True,
-                        "wake_time": True,
-                        "hours": True,
-                        "quality": True,
-                        "gantt_start": False,
-                        "gantt_end": False,
-                        "date_label": False,
-                    },
-                )
+            all_days = pd.DataFrame({
+                "date": pd.date_range(selected_month_start, month_end, freq="D")
+            })
+            all_days["date_label"] = all_days["date"].dt.strftime("%m/%d")
+            all_days["month_key"] = all_days["date"].dt.strftime("%Y-%m")
     
-                fig.update_yaxes(
-                    autorange="reversed",
-                    title=None
-                )
+            month_df = all_days.merge(
+                sleep_gantt_df,
+                on=["date", "date_label", "month_key"],
+                how="left"
+            )
     
-                fig.update_xaxes(
-                    title="時間",
-                    tickformat="%H:%M",
-                    range=[datetime(2000, 1, 1, 18, 0), datetime(2000, 1, 2, 12, 0)]
-                )
+            plot_df = month_df.dropna(subset=["gantt_start", "gantt_end"]).copy()
+            y_order = month_df["date_label"].tolist()[::-1]
     
-                fig.update_layout(
-                    height=max(350, len(month_df) * 28 + 120),
-                    margin=dict(l=10, r=10, t=10, b=10),
-                    coloraxis_colorbar_title="品質"
-                )
+            fig = go.Figure()
     
-                st.plotly_chart(fig, use_container_width=True)
+            for row in plot_df.itertuples():
+                duration_hours = (row.gantt_end - row.gantt_start).total_seconds() / 3600
+    
+                fig.add_trace(go.Bar(
+                    x=[duration_hours],
+                    y=[row.date_label],
+                    base=[row.gantt_start],
+                    orientation="h",
+                    width=0.28,
+                    marker=dict(
+                        color="#E6CDD6",
+                        line=dict(color="#D7B8C4", width=1)
+                    ),
+                    hovertemplate=(
+                        f"{row.date_label}<br>"
+                        f"入睡：{row.sleep_time}<br>"
+                        f"起床：{row.wake_time}<br>"
+                        f"時數：{row.hours} 小時<br>"
+                        f"品質：{row.quality}/5"
+                        "<extra></extra>"
+                    ),
+                    showlegend=False
+                ))
+    
+            fig.update_yaxes(
+                categoryorder="array",
+                categoryarray=y_order,
+                title=None,
+                tickfont=dict(size=11, color="#7A6D72")
+            )
+    
+            fig.update_xaxes(
+                title="時間",
+                tickformat="%H:%M",
+                range=[datetime(2000, 1, 1, 18, 0), datetime(2000, 1, 2, 12, 0)],
+                tickfont=dict(size=11, color="#8A8084"),
+                title_font=dict(size=13, color="#7A6D72"),
+                gridcolor="#F0E6E9"
+            )
+    
+            fig.update_layout(
+                height=max(520, len(month_df) * 22 + 80),
+                margin=dict(l=20, r=20, t=20, b=20),
+                paper_bgcolor="#FCFAF9",
+                plot_bgcolor="#FFFDF8",
+                bargap=0.55,
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("---")
     
         st.markdown("---")
         left, right = st.columns([1.0, 1.4], gap="large")
