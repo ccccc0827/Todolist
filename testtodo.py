@@ -1004,7 +1004,6 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                     if pd.notna(row.deadline):
                         st.caption(get_deadline_label(row.deadline, row.status))
                 with c2:
-                    st.markdown('<div class="status-wrap">', unsafe_allow_html=True)
                     new_status = st.selectbox(
                         "狀態",
                         ["未完成", "進行中", "已完成"],
