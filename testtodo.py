@@ -1203,6 +1203,13 @@ with tab5:
             default_month_index = month_options.index(current_month)    
             
             selected_sleep_month = st.selectbox(
+                sleep_df_for_stats = sleep_df.copy()
+                sleep_df_for_stats["date"] = pd.to_datetime(sleep_df_for_stats["date"])
+                sleep_df_for_stats["month_key"] = sleep_df_for_stats["date"].dt.strftime("%Y-%m")
+                
+                selected_month_sleep_df = sleep_df_for_stats[
+                    sleep_df_for_stats["month_key"] == selected_sleep_month
+                ].copy()
                 "選擇月份",
                 month_options,
                 index=default_month_index,
@@ -1214,17 +1221,6 @@ with tab5:
             sleep_df_for_stats["date"] = pd.to_datetime(sleep_df_for_stats["date"])
             sleep_df_for_stats["month_key"] = sleep_df_for_stats["date"].dt.strftime("%Y-%m")
             
-            c1, c2 = st.columns(2)
-
-            if not selected_month_sleep_df.empty:
-                avg_hours = round(float(selected_month_sleep_df["hours"].mean()), 1)
-                avg_quality = round(float(selected_month_sleep_df["quality"].mean()), 1)
-            else:
-                avg_hours = 0.0
-                avg_quality = 0.0
-            
-            c1.metric("月平均睡眠時數", f"{avg_hours} h")
-            c2.metric("月平均睡眠品質", f"{avg_quality} / 5")
     
             selected_month_start = pd.to_datetime(f"{selected_sleep_month}-01")
             next_month_start = selected_month_start + pd.offsets.MonthBegin(1)
@@ -1257,30 +1253,6 @@ with tab5:
                 hoverinfo="skip",
                 showlegend=False
             ))
-            
-            for row in plot_df.itertuples():
-                duration_ms = (row.gantt_end - row.gantt_start).total_seconds() * 1000
-            
-                fig.add_trace(go.Bar(
-                    x=[duration_ms],
-                    y=[row.day_num],
-                    base=[row.gantt_start],
-                    orientation="h",
-                    width=0.28,
-                    marker=dict(
-                        color="#E6CDD6",
-                        line=dict(color="#D7B8C4", width=1)
-                    ),
-                    hovertemplate=(
-                        f"{row.date_label}<br>"
-                        f"入睡：{row.sleep_time}<br>"
-                        f"起床：{row.wake_time}<br>"
-                        f"時數：{row.hours} 小時<br>"
-                        f"品質：{row.quality}/5"
-                        "<extra></extra>"
-                    ),
-                    showlegend=False
-                ))
             
             for row in plot_df.itertuples():
                 duration_ms = (row.gantt_end - row.gantt_start).total_seconds() * 1000
