@@ -1219,15 +1219,15 @@ with tab5:
             all_days["date_label"] = all_days["date"].dt.strftime("%m/%d")
             all_days["day_num"] = all_days["date"].dt.strftime("%d")
             all_days["month_key"] = all_days["date"].dt.strftime("%Y-%m")
-    
+            
             month_df = all_days.merge(
                 sleep_gantt_df,
                 on=["date", "date_label", "month_key"],
                 how="left"
             )
-    
+            
             plot_df = month_df.dropna(subset=["gantt_start", "gantt_end"]).copy()
-            y_order = month_df["date_label"].tolist()[::-1]
+            y_order = month_df["day_num"].tolist()[::-1]
             
             fig = go.Figure()
             
@@ -1242,11 +1242,11 @@ with tab5:
             ))
             
             for row in plot_df.itertuples():
-                duration_hours = (row.gantt_end - row.gantt_start).total_seconds() / 3600
+                duration_ms = (row.gantt_end - row.gantt_start).total_seconds() * 1000
             
                 fig.add_trace(go.Bar(
-                    x=[duration_hours],
-                    y=[row.date_label],
+                    x=[duration_ms],
+                    y=[row.day_num],
                     base=[row.gantt_start],
                     orientation="h",
                     width=0.28,
@@ -1336,7 +1336,7 @@ with tab5:
                             st.markdown(f"**{row.date}**")
                             st.write(f"{row.sleep_time} → {row.wake_time}　｜　{row.hours} 小時")
                             st.caption(f"品質：{row.quality}/5")
-                            if str(row.note).strip():
+                            if pd.notna(row.note) and str(row.note).strip():
                                 st.write(row.note)
                         with c2:
                             if st.button("🗑️", key=f"del_sleep_{row.date}"):
