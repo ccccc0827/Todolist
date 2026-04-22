@@ -1228,10 +1228,10 @@ with tab5:
         all_days["day_num"] = all_days["date"].dt.strftime("%d")
         all_days["month_key"] = all_days["date"].dt.strftime("%Y-%m")
             
-            month_df = all_days.merge(
-                sleep_gantt_df,
-                on=["date", "date_label", "month_key"],
-                how="left"
+        month_df = all_days.merge(
+            sleep_gantt_df,
+            on=["date", "date_label", "month_key"],
+            how="left"
             )
             
             plot_df = month_df.dropna(subset=["gantt_start", "gantt_end"]).copy()
