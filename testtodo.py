@@ -1234,10 +1234,10 @@ with tab5:
             how="left"
             )
             
-            plot_df = month_df.dropna(subset=["gantt_start", "gantt_end"]).copy()
-            y_order = month_df["day_num"].tolist()[::-1]
+        plot_df = month_df.dropna(subset=["gantt_start", "gantt_end"]).copy()
+        y_order = month_df["day_num"].tolist()[::-1]
             
-            fig = go.Figure()
+        fig = go.Figure()
             
             # 先把整個月所有日期放進 y 軸
             fig.add_trace(go.Scatter(
