@@ -74,7 +74,7 @@ st.markdown(
     f"""
     <style>
 html, body, [class*="css"] {{
-    font-size: 14px;
+    font-size: 13px;
 }}
 .stApp {{
     background: {SOFT_BG};
