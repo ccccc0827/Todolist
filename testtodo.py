@@ -1403,25 +1403,25 @@ with tab5:
             st.markdown("#### 睡眠明細表")
             st.dataframe(sleep_df.sort_values("date", ascending=False), use_container_width=True, hide_index=True)
     with habit_tab:
-    habit_log_df = load_habit_log_data()
-    current_year = today_local().year
-    month_options = [f"{current_year}-{m:02d}" for m in range(1, 13)]
-    current_month = today_local().strftime("%Y-%m")
-    default_month_index = month_options.index(current_month)
-    selected_habit_month = st.selectbox(
-        "選擇 Habit 月份",
-        month_options,
-        index=default_month_index,
-        format_func=lambda x: x.replace("-", "/"),
-        key="habit_month_selector"
-    )
-    
-    selected_month_start = pd.to_datetime(f"{selected_habit_month}-01")
-    next_month_start = selected_month_start + pd.offsets.MonthBegin(1)
-    month_end = next_month_start - pd.Timedelta(days=1)
-    month_days = pd.date_range(selected_month_start, month_end, freq="D")
-    
-    left, right = st.columns([0.9, 1.6], gap="large")
+        habit_log_df = load_habit_log_data()
+        current_year = today_local().year
+        month_options = [f"{current_year}-{m:02d}" for m in range(1, 13)]
+        current_month = today_local().strftime("%Y-%m")
+        default_month_index = month_options.index(current_month)
+        selected_habit_month = st.selectbox(
+            "選擇 Habit 月份",
+            month_options,
+            index=default_month_index,
+            format_func=lambda x: x.replace("-", "/"),
+            key="habit_month_selector"
+        )
+        
+        selected_month_start = pd.to_datetime(f"{selected_habit_month}-01")
+        next_month_start = selected_month_start + pd.offsets.MonthBegin(1)
+        month_end = next_month_start - pd.Timedelta(days=1)
+        month_days = pd.date_range(selected_month_start, month_end, freq="D")
+        
+        left, right = st.columns([0.9, 1.6], gap="large")
     
         with left:
             with st.form("add_habit_form", clear_on_submit=True):
