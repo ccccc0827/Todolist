@@ -704,6 +704,26 @@ def update_habit_day(habit_id: int, day_name: str, value: bool):
     current_df.loc[current_df["id"] == habit_id, day_name] = bool(value)
     save_habit_data(current_df)
 
+def update_habit_log(habit_id: int, log_date: date, value: bool):
+    current_df = load_habit_log_data().copy()
+
+    if not current_df.empty:
+        current_df["date"] = pd.to_datetime(current_df["date"]).dt.date
+        current_df = current_df[
+            ~(
+                (current_df["habit_id"] == habit_id)
+                & (current_df["date"] == log_date)
+            )
+        ].copy()
+
+    new_row = pd.DataFrame([{
+        "habit_id": habit_id,
+        "date": log_date,
+        "done": bool(value),
+    }])
+
+    updated_df = pd.concat([current_df, new_row], ignore_index=True)
+    save_habit_log_data(updated_df)
 
 # =========================
 # UI helpers
@@ -1382,119 +1402,118 @@ with tab5:
     
             st.markdown("#### 睡眠明細表")
             st.dataframe(sleep_df.sort_values("date", ascending=False), use_container_width=True, hide_index=True)
-            with habit_tab:
-                habit_log_df = load_habit_log_data()
-        
-                current_year = today_local().year
-                month_options = [f"{current_year}-{m:02d}" for m in range(1, 13)]
-                current_month = today_local().strftime("%Y-%m")
-                default_month_index = month_options.index(current_month)
-        
-                selected_habit_month = st.selectbox(
-                    "選擇 Habit 月份",
-                    month_options,
-                    index=default_month_index,
-                    format_func=lambda x: x.replace("-", "/"),
-                    key="habit_month_selector"
-                )
-        
-                selected_month_start = pd.to_datetime(f"{selected_habit_month}-01")
-                next_month_start = selected_month_start + pd.offsets.MonthBegin(1)
-                month_end = next_month_start - pd.Timedelta(days=1)
-                month_days = pd.date_range(selected_month_start, month_end, freq="D")
-        
-                left, right = st.columns([0.9, 1.6], gap="large")
-        
-                with left:
-                    with st.form("add_habit_form", clear_on_submit=True):
-                        habit_name = st.text_input("習慣名稱")
-                        submitted = st.form_submit_button("新增習慣")
-                        if submitted:
-                            if habit_name.strip():
-                                add_habit(habit_name)
-                                st.success("已新增習慣")
+        with habit_tab:
+        habit_log_df = load_habit_log_data()
+    
+        current_year = today_local().year
+        month_options = [f"{current_year}-{m:02d}" for m in range(1, 13)]
+        current_month = today_local().strftime("%Y-%m")
+        default_month_index = month_options.index(current_month)
+    
+        selected_habit_month = st.selectbox(
+            "選擇 Habit 月份",
+            month_options,
+            index=default_month_index,
+            format_func=lambda x: x.replace("-", "/"),
+            key="habit_month_selector"
+        )
+    
+        selected_month_start = pd.to_datetime(f"{selected_habit_month}-01")
+        next_month_start = selected_month_start + pd.offsets.MonthBegin(1)
+        month_end = next_month_start - pd.Timedelta(days=1)
+        month_days = pd.date_range(selected_month_start, month_end, freq="D")
+    
+        left, right = st.columns([0.9, 1.6], gap="large")
+    
+        with left:
+            with st.form("add_habit_form", clear_on_submit=True):
+                habit_name = st.text_input("習慣名稱")
+                submitted = st.form_submit_button("新增習慣")
+                if submitted:
+                    if habit_name.strip():
+                        add_habit(habit_name)
+                        st.success("已新增習慣")
+                        st.rerun()
+                    else:
+                        st.warning("請輸入習慣名稱")
+    
+            st.markdown("#### 本月習慣完成次數")
+            if habit_df.empty:
+                st.info("先新增一個你想追蹤的習慣吧 🌱")
+            else:
+                for habit in habit_df.itertuples():
+                    if habit_log_df.empty:
+                        done_count = 0
+                    else:
+                        tmp = habit_log_df.copy()
+                        tmp["date"] = pd.to_datetime(tmp["date"])
+                        tmp["month_key"] = tmp["date"].dt.strftime("%Y-%m")
+                        done_count = int(
+                            (
+                                (tmp["habit_id"] == habit.id)
+                                & (tmp["month_key"] == selected_habit_month)
+                                & (tmp["done"] == True)
+                            ).sum()
+                        )
+    
+                    total_days = len(month_days)
+                    rate = int(done_count / total_days * 100) if total_days > 0 else 0
+    
+                    st.markdown(
+                        f'''
+                        <div class="progress-row">
+                            <div>{habit.habit_name}</div>
+                            <div class="bar-bg">
+                                <div class="bar-fill" style="width:{rate}%; background:#B8A2F5;"></div>
+                            </div>
+                            <div style="text-align:right;">{done_count}/{total_days}</div>
+                        </div>
+                        ''',
+                        unsafe_allow_html=True,
+                    )
+    
+        with right:
+            st.markdown("#### Habit Tracker 月打卡表")
+    
+            if habit_df.empty:
+                st.info("先新增一個你想追蹤的習慣吧 🌱")
+            else:
+                for habit in habit_df.itertuples():
+                    with st.container(border=True):
+                        head1, head2 = st.columns([1.3, 0.2])
+                        with head1:
+                            st.markdown(f"**{habit.habit_name}**")
+                        with head2:
+                            if st.button("🗑️", key=f"delete_habit_{habit.id}"):
+                                delete_habit(habit.id)
                                 st.rerun()
-                            else:
-                                st.warning("請輸入習慣名稱")
-        
-                    st.markdown("#### 本月習慣完成次數")
-                    if habit_df.empty:
-                        st.info("先新增一個你想追蹤的習慣吧 🌱")
-                    else:
-                        for habit in habit_df.itertuples():
-                            if habit_log_df.empty:
-                                done_count = 0
-                            else:
-                                tmp = habit_log_df.copy()
-                                tmp["date"] = pd.to_datetime(tmp["date"])
-                                tmp["month_key"] = tmp["date"].dt.strftime("%Y-%m")
-                                done_count = int(
-                                    (
-                                        (tmp["habit_id"] == habit.id)
-                                        & (tmp["month_key"] == selected_habit_month)
-                                        & (tmp["done"] == True)
-                                    ).sum()
-                                )
-        
-                            total_days = len(month_days)
-                            rate = int(done_count / total_days * 100) if total_days > 0 else 0
-        
-                            st.markdown(
-                                f'''
-                                <div class="progress-row">
-                                    <div>{habit.habit_name}</div>
-                                    <div class="bar-bg">
-                                        <div class="bar-fill" style="width:{rate}%; background:#B8A2F5;"></div>
-                                    </div>
-                                    <div style="text-align:right;">{done_count}/{total_days}</div>
-                                </div>
-                                ''',
-                                unsafe_allow_html=True,
-                            )
-        
-                with right:
-                    st.markdown("#### Habit Tracker 月打卡表")
-        
-                    if habit_df.empty:
-                        st.info("先新增一個你想追蹤的習慣吧 🌱")
-                    else:
-                        for habit in habit_df.itertuples():
-                            with st.container(border=True):
-                                head1, head2 = st.columns([1.3, 0.2])
-                                with head1:
-                                    st.markdown(f"**{habit.habit_name}**")
-                                with head2:
-                                    if st.button("🗑️", key=f"delete_habit_{habit.id}"):
-                                        delete_habit(habit.id)
-                                        st.rerun()
-        
-                                # 每 7 天一排
-                                for start_idx in range(0, len(month_days), 7):
-                                    row_days = month_days[start_idx:start_idx + 7]
-                                    cols = st.columns(7)
-                                
-                                    for idx in range(7):
-                                        with cols[idx]:
-                                            if idx < len(row_days):
-                                                day_dt = row_days[idx]
-                                                day_date = day_dt.date()
-                                
-                                                checked = False
-                                                if not habit_log_df.empty:
-                                                    matched = habit_log_df[
-                                                        (habit_log_df["habit_id"] == habit.id)
-                                                        & (pd.to_datetime(habit_log_df["date"]).dt.date == day_date)
-                                                    ]
-                                                    if not matched.empty:
-                                                        checked = bool(matched.iloc[-1]["done"])
-                                
-                                                val = st.checkbox(
-                                                    f"{day_dt.strftime('%d')}",
-                                                    value=checked,
-                                                    key=f"habit_{habit.id}_{day_date}"
-                                                )
-                                                if val != checked:
-                                                    update_habit_log(habit.id, day_date, val)
-                                                    st.rerun()
-                                                else:
-                                                    st.markdown("&nbsp;", unsafe_allow_html=True)
+    
+                        for start_idx in range(0, len(month_days), 7):
+                            row_days = month_days[start_idx:start_idx + 7]
+                            cols = st.columns(7)
+    
+                            for idx in range(7):
+                                with cols[idx]:
+                                    if idx < len(row_days):
+                                        day_dt = row_days[idx]
+                                        day_date = day_dt.date()
+    
+                                        checked = False
+                                        if not habit_log_df.empty:
+                                            matched = habit_log_df[
+                                                (habit_log_df["habit_id"] == habit.id)
+                                                & (pd.to_datetime(habit_log_df["date"]).dt.date == day_date)
+                                            ]
+                                            if not matched.empty:
+                                                checked = bool(matched.iloc[-1]["done"])
+    
+                                        val = st.checkbox(
+                                            f"{day_dt.strftime('%d')}",
+                                            value=checked,
+                                            key=f"habit_{habit.id}_{day_date}"
+                                        )
+                                        if val != checked:
+                                            update_habit_log(habit.id, day_date, val)
+                                            st.rerun()
+                                    else:
+                                        st.markdown("&nbsp;", unsafe_allow_html=True)
