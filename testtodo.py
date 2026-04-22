@@ -370,11 +370,11 @@ task-card-select p,
 }}
 
 .task-card-select div[data-testid="stSelectbox"] {{
-    max-width: 64px;
+    max-width: 48px;
 }}
 
 .task-card-select div[data-testid="stSelectbox"] [data-baseweb="select"] {{
-    width: 64px !important;
+    width: 48px !important;
 }}
 
 .task-card-select div[data-testid="stSelectbox"] [data-baseweb="select"] > div {{
@@ -395,12 +395,12 @@ task-card-select p,
 }}
 
 .task-card-select div[data-testid="stSelectbox"] span {{
-    font-size: 0.72rem !important;
+    font-size: 0.5rem !important;
 }}
 
 .task-card-select div[data-testid="stSelectbox"] svg {{
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
 }}
 
 div[data-testid="stButton"] > button {{
