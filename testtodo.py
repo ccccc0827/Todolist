@@ -1209,6 +1209,22 @@ with tab5:
                 format_func=lambda x: x.replace("-", "/"),
                 key="sleep_month_selector"
             )
+            
+            sleep_df_for_stats = sleep_df.copy()
+            sleep_df_for_stats["date"] = pd.to_datetime(sleep_df_for_stats["date"])
+            sleep_df_for_stats["month_key"] = sleep_df_for_stats["date"].dt.strftime("%Y-%m")
+            
+            c1, c2 = st.columns(2)
+
+            if not selected_month_sleep_df.empty:
+                avg_hours = round(float(selected_month_sleep_df["hours"].mean()), 1)
+                avg_quality = round(float(selected_month_sleep_df["quality"].mean()), 1)
+            else:
+                avg_hours = 0.0
+                avg_quality = 0.0
+            
+            c1.metric("月平均睡眠時數", f"{avg_hours} h")
+            c2.metric("月平均睡眠品質", f"{avg_quality} / 5")
     
             selected_month_start = pd.to_datetime(f"{selected_sleep_month}-01")
             next_month_start = selected_month_start + pd.offsets.MonthBegin(1)
@@ -1342,12 +1358,17 @@ with tab5:
                     except ValueError:
                         st.error("時間格式請輸入 HH:MM，例如 01:30")
     
-            if not sleep_df.empty:
-                avg_hours = round(float(sleep_df["hours"].mean()), 1)
-                avg_quality = round(float(sleep_df["quality"].mean()), 1)
-                c1, c2 = st.columns(2)
-                c1.metric("平均睡眠時數", f"{avg_hours} h")
-                c2.metric("平均睡眠品質", f"{avg_quality} / 5")
+            c1, c2 = st.columns(2)
+
+            if not selected_month_sleep_df.empty:
+                avg_hours = round(float(selected_month_sleep_df["hours"].mean()), 1)
+                avg_quality = round(float(selected_month_sleep_df["quality"].mean()), 1)
+            else:
+                avg_hours = 0.0
+                avg_quality = 0.0
+            
+            c1.metric("月平均睡眠時數", f"{avg_hours} h")
+            c2.metric("月平均睡眠品質", f"{avg_quality} / 5")
     
         with right:
             st.markdown("#### 最近睡眠紀錄")
