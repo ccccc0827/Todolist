@@ -1329,7 +1329,7 @@ with tab3:
         submitted = st.form_submit_button("新增")
         if submitted:
             if task_name.strip():
-                add_task(task_name, category, status, task_date, note)
+                 add_task(task_name, category, status, day_date, deadline, note)
                 st.success("任務已新增")
                 st.rerun()
             else:
