@@ -270,7 +270,7 @@ html, body, [class*="css"] {{
     align-items: center;
     padding: 6px 0;
     border-bottom: 1px dashed #F0E6E9;
-    font-size: 0.78rem;
+    font-size: 0.5rem;
 }}
 .task-row:last-child {{ border-bottom: none; }}
 .task-name {{
@@ -279,8 +279,8 @@ html, body, [class*="css"] {{
     gap: 8px;
 }}
 .checkbox {{
-    width: 14px;
-    height: 14px;
+    width: 10px;
+    height: 10px;
     border-radius: 4px;
     border: 1.4px solid #CFC5C8;
     flex: 0 0 auto;
@@ -356,9 +356,9 @@ div[data-testid="stButton"] > button {{
 }}
 
 .task-card-select div[data-testid="stSelectbox"] [data-baseweb="select"] > div {{
-    min-height: 28px;
+    min-height: 24px;
     background: #F3F5F8;
-    border-radius: 10px;
+    border-radius: 8px;
     border: 1px solid #E7EAF0;
     font-size: 0.5rem;
     padding-top: 0;
@@ -371,14 +371,14 @@ div[data-testid="stButton"] > button {{
 }}
 
 .task-card-select div[data-testid="stSelectbox"] svg {{
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
 }}
 
 div[data-testid="stButton"] > button {{
-    border-radius: 10px;
-    min-height: 34px;
-    padding: 0 8px;
+    border-radius: 8px;
+    min-height: 28px;
+    padding: 0 6px;
 }}
     </style>
     """,
