@@ -919,7 +919,7 @@ def render_today_card(frame: pd.DataFrame, today_value: date):
 
         block_html = (
             '<div style="background:rgba(255,255,255,0.45); border:1px solid #D7E0EF; border-radius:14px; padding:12px;">'
-            f'<div style="text-align:center; font-weight:700; font-size:0.66rem; margin-bottom:6px;">{cat}</div>'
+            f'<div style="text-align:center; font-weight:700; font-size:0.8rem; margin-bottom:6px;">{cat}</div>'
             f'{content}'
             '</div>'
         )
