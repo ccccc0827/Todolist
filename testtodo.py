@@ -361,6 +361,43 @@ div[data-testid="stButton"] > button {{
     line-height: 1.1 !important;
     margin-bottom: 0.15rem !important;
 }}
+.task-card-select div[data-testid="stSelectbox"] {{
+    width: 68px !important;
+    min-width: 68px !important;
+    max-width: 68px !important;
+}}
+
+.task-card-select div[data-testid="stSelectbox"] [data-baseweb="select"] {{
+    width: 68px !important;
+    min-width: 68px !important;
+}}
+
+.task-card-select div[data-testid="stSelectbox"] [data-baseweb="select"] > div {{
+    min-height: 22px !important;
+    height: 22px !important;
+    border-radius: 10px !important;
+    background: #F3F5F8 !important;
+    border: 1px solid #E7EAF0 !important;
+    padding-left: 8px !important;
+    padding-right: 16px !important;
+    display: flex !important;
+    align-items: center !important;
+}}
+
+.task-card-select div[data-testid="stSelectbox"] [data-baseweb="select"] > div > div {{
+    font-size: 0.50rem !important;
+    line-height: 1 !important;
+}}
+
+.task-card-select div[data-testid="stSelectbox"] [data-baseweb="select"] span {{
+    font-size: 0.50rem !important;
+    line-height: 1 !important;
+}}
+
+.task-card-select div[data-testid="stSelectbox"] svg {{
+    width: 6px !important;
+    height: 6px !important;
+}}
 
 .task-card-select p,
 .task-card-select label,
@@ -369,45 +406,6 @@ div[data-testid="stButton"] > button {{
     font-size: 0.72rem !important;
 }}
 
-.task-card-select div[data-testid="stSelectbox"] {{
-    width: 72px !important;
-    min-width: 72px !important;
-    max-width: 72px !important;
-}}
-
-.task-card-select div[data-testid="stSelectbox"] [data-baseweb="select"] {{
-    width: 72px !important;
-    min-width: 72px !important;
-}}
-
-.task-card-select div[data-testid="stSelectbox"] [data-baseweb="select"] > div {{
-    min-height: 22px !important;
-    height: 22px !important;
-    border-radius: 999px !important;
-    background: #F3F5F8 !important;
-    border: 1px solid #E7EAF0 !important;
-    padding-left: 8px !important;
-    padding-right: 18px !important;
-    font-size: 0.54rem !important;
-    line-height: 1 !important;
-    display: flex !important;
-    align-items: center !important;
-    white-space: nowrap !important;
-}}
-
-.task-card-select div[data-testid="stSelectbox"] * {{
-    font-size: 0.54rem !important;
-}}
-
-.task-card-select div[data-testid="stSelectbox"] svg {{
-    width: 7px !important;
-    height: 7px !important;
-}}
-.task-card-select div[data-testid="stSelectbox"] span,
-.task-card-select div[data-testid="stSelectbox"] div,
-.task-card-select div[data-testid="stSelectbox"] input {{
-    font-size: 0.54rem !important;
-}}
 div[data-testid="stButton"] > button {{
     border-radius: 8px;
     min-height: 18px;
@@ -1072,7 +1070,7 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                 deadline = st.date_input(
                     "Deadline",
                     value=day_date,
-                    key=f"deadline_{day_name}_{day_date}"
+                    key="tab3_deadline"
                 )
                 if submitted:
                     if task_name.strip():
