@@ -971,7 +971,7 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
             st.info("")
         else:
             for row in subset.itertuples():
-                c1, c2, c3, c4, c5 = st.columns([0.40, 0.42, 0.16, 0.16, 0.16])
+                c1, c2, c3, c4, c5 = st.columns([0.40, 0.5, 0.2, 0.2, 0.2])
                 with c1:
                     if bool(row.carry_over):
                         st.markdown(
