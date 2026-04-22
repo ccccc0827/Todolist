@@ -407,10 +407,10 @@ div[data-testid="stButton"] > button {{
 }}
 
 div[data-testid="stButton"] > button {{
-    border-radius: 8px;
-    min-height: 18px;
+    border-radius: 6px;
+    min-height: 14px;
     padding: 0 4px;
-    font-size: 0.5rem;
+    font-size: 0.4rem;
 }}
     </style>
     """,
