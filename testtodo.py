@@ -405,28 +405,6 @@ div[data-testid="stButton"] > button {{
 .task-card-select label {{
     font-size: 0.72rem !important;
 }}
-.task-card-select .status-wrap {{
-    transform: scale(0.78);
-    transform-origin: left center;
-    width: 110px;
-    margin-right: -22px;
-}}
-
-.task-card-select .status-wrap div[data-testid="stSelectbox"] {{
-    width: 110px !important;
-    min-width: 110px !important;
-    max-width: 110px !important;
-}}
-
-.task-card-select .status-wrap div[data-testid="stSelectbox"] [data-baseweb="select"] {{
-    width: 110px !important;
-    min-width: 110px !important;
-}}
-
-.task-card-select .status-wrap div[data-testid="stSelectbox"] [data-baseweb="select"] > div {{
-    min-height: 24px !important;
-    height: 24px !important;
-}}
 
 div[data-testid="stButton"] > button {{
     border-radius: 8px;
