@@ -1268,8 +1268,7 @@ with tab1:
             st.markdown(memo_html, unsafe_allow_html=True)
     st.markdown('''
         <div class="footer-strip">
-            <div>快速切換：任務總表 ｜ 閱讀清單 ｜ 睡眠紀錄 ｜ Habit Tracker</div>
-            <div>週次切換後，右側與統計會同步更新</div>
+            <div>越努力、越幸運✨</div>
         </div>
         ''', unsafe_allow_html=True)
 
