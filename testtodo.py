@@ -1216,7 +1216,8 @@ with tab5:
             all_days = pd.DataFrame({
                 "date": pd.date_range(selected_month_start, month_end, freq="D")
             })
-            all_days["date_label"] = all_days["date"].dt.strftime("%d")
+            all_days["date_label"] = all_days["date"].dt.strftime("%m/%d")
+            all_days["day_num"] = all_days["date"].dt.strftime("%d")
             all_days["month_key"] = all_days["date"].dt.strftime("%Y-%m")
     
             month_df = all_days.merge(
