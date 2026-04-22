@@ -659,7 +659,13 @@ def update_task(task_id: int, updates: dict, path: str = DEFAULT_CSV):
 
     current_df.to_csv(path, index=False)
     st.cache_data.clear()
-
+    
+def update_task_status(task_id: int, new_status: str, path: str = DEFAULT_CSV):
+    current_df = load_data(path).copy()
+    current_df.loc[current_df["id"] == task_id, "status"] = new_status
+    current_df = normalize_task_dates(current_df)
+    save_task_data(current_df, path)
+    
 def add_task(
     task_name: str,
     category: str,
