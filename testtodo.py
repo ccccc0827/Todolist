@@ -354,13 +354,28 @@ div[data-testid="stButton"] > button {{
 .task-card-select div[data-testid="stSelectbox"] > div {{
     border-radius: 10px;
 }}
+.task-card-select {{
+    font-size: 0.78rem;
+}}
+
+.task-card-select h2 {{
+    font-size: 0.95rem !important;
+    line-height: 1.1 !important;
+    margin-bottom: 0.15rem !important;
+}}
+
+.task-card-select p,
+.task-card-select label,
+.task-card-select span {{
+    font-size: 0.72rem !important;
+}}
 
 .task-card-select div[data-testid="stSelectbox"] [data-baseweb="select"] > div {{
     min-height: 24px;
     background: #F3F5F8;
     border-radius: 8px;
     border: 1px solid #E7EAF0;
-    font-size: 0.5rem;
+    font-size: 0.68rem;
     padding-top: 0;
     padding-bottom: 0;
     min-width: 100%;
@@ -377,8 +392,9 @@ div[data-testid="stButton"] > button {{
 
 div[data-testid="stButton"] > button {{
     border-radius: 8px;
-    min-height: 28px;
-    padding: 0 6px;
+    min-height: 26px;
+    padding: 0 4px;
+    font-size: 0.68rem;
 }}
     </style>
     """,
@@ -949,12 +965,15 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                 with c1:
                     if bool(row.carry_over):
                         st.markdown(
-                            f"<span style='color:#B56E7B; text-decoration: line-through; text-decoration-color:#D9534F; text-decoration-thickness:2px;'>{row.task_name}</span>",
+                            f"<span style='font-size:0.78rem; color:#B56E7B; text-decoration: line-through; text-decoration-color:#D9534F; text-decoration-thickness:2px;'>{row.task_name}</span>",
                             unsafe_allow_html=True
                         )
                         st.caption("已延到下一天")
                     else:
-                        st.markdown(f"**{row.task_name}**")
+                        st.markdown(
+                            f"<div style='font-size:0.78rem; font-weight:600; line-height:1.3;'>{row.task_name}</div>",
+                            unsafe_allow_html=True
+                        )
                 
                     if pd.notna(row.deadline):
                         st.caption(get_deadline_label(row.deadline, row.status))
