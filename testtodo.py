@@ -412,15 +412,9 @@ def status_pill_html(status: str) -> str:
 def create_sample_csv(path: str):
     sample = pd.DataFrame(
         [
-            [1, "日文 L35", "學習成長", "未完成", "2026-04-21", "W17", "Mon", ""],
-            [2, "神經解剖複習", "學習成長", "進行中", "2026-04-21", "W17", "Mon", ""],
-            [3, "英單 30 個", "學習成長", "已完成", "2026-04-21", "W17", "Mon", ""],
-            [4, "洗衣服", "日常生活", "已完成", "2026-04-21", "W17", "Mon", ""],
-            [5, "整理房間", "日常生活", "未完成", "2026-04-21", "W17", "Mon", ""],
-            [6, "散步 30 分鐘", "自我照顧", "進行中", "2026-04-21", "W17", "Mon", ""],
-            [7, "日文 L36", "學習成長", "未完成", "2026-04-22", "W17", "Tue", ""],
+            [1, "日文 L35", "學習成長", "未完成", "2026-04-21", "2026-04-22", "W17", "Mon", "", False]
         ],
-        columns=["id", "task_name", "category", "status", "date", "week", "weekday", "note"],
+        columns=["id", "task_name", "category", "status", "date", "deadline", "week", "weekday", "note", "carry_over"],
     )
     sample.to_csv(path, index=False)
 
@@ -487,6 +481,14 @@ def load_data(path: str = DEFAULT_CSV) -> pd.DataFrame:
         create_sample_csv(path)
     df = pd.read_csv(path)
     df["date"] = pd.to_datetime(df["date"]).dt.date
+
+    if "deadline" in df.columns:
+        df["deadline"] = pd.to_datetime(df["deadline"], errors="coerce").dt.date
+    else:
+        df["deadline"] = pd.NaT
+    
+    if "carry_over" not in df.columns:
+        df["carry_over"] = False
     return df
 
 
@@ -548,7 +550,23 @@ def normalize_task_dates(df: pd.DataFrame) -> pd.DataFrame:
     frame["weekday"] = dt.dt.strftime("%a")
     return frame
 
+def get_deadline_label(deadline, status):
+    if pd.isna(deadline):
+        return ""
+    today = today_local()
 
+    if status == "已完成":
+        return f"⏰ Deadline: {deadline.month}/{deadline.day}"
+
+    if deadline < today:
+        return f"🔴 已逾期 {deadline.month}/{deadline.day}"
+    elif deadline == today:
+        return f"🟠 今天截止 {deadline.month}/{deadline.day}"
+    elif (deadline - today).days == 1:
+        return f"🟡 明天截止 {deadline.month}/{deadline.day}"
+    else:
+        return f"⏰ Deadline: {deadline.month}/{deadline.day}"
+        
 # =========================
 # Generic save helpers
 # =========================
@@ -585,7 +603,16 @@ def update_task_status(task_id: int, new_status: str, path: str = DEFAULT_CSV):
     save_task_data(current_df, path)
 
 
-def add_task(task_name: str, category: str, status: str, task_date: date, note: str = "", path: str = DEFAULT_CSV):
+def add_task(
+    task_name: str,
+    category: str,
+    status: str,
+    task_date: date,
+    deadline: date | None = None,
+    note: str = "",
+    carry_over: bool = False,
+    path: str = DEFAULT_CSV
+):
     current_df = load_data(path).copy()
     new_id = 1 if current_df.empty else int(current_df["id"].max()) + 1
     new_row = pd.DataFrame([{
@@ -597,6 +624,8 @@ def add_task(task_name: str, category: str, status: str, task_date: date, note: 
         "week": "",
         "weekday": "",
         "note": note.strip(),
+        "deadline": deadline,
+        "carry_over": carry_over,
     }])
     updated_df = pd.concat([current_df, new_row], ignore_index=True)
     updated_df = normalize_task_dates(updated_df)
@@ -609,7 +638,43 @@ def delete_task(task_id: int, path: str = DEFAULT_CSV):
     current_df = normalize_task_dates(current_df)
     save_task_data(current_df, path)
 
+def update_task(task_id: int, updates: dict, path: str = DEFAULT_CSV):
+    current_df = load_data(path).copy()
 
+    for col, value in updates.items():
+        current_df.loc[current_df["id"] == task_id, col] = value
+
+    current_df = normalize_task_dates(current_df)
+    save_task_data(current_df, path)
+def carry_task_to_next_day(task_id: int, path: str = DEFAULT_CSV):
+    current_df = load_data(path).copy()
+    task_row = current_df[current_df["id"] == task_id]
+
+    if task_row.empty:
+        return
+
+    row = task_row.iloc[0]
+    next_date = row["date"] + timedelta(days=1)
+
+    current_df.loc[current_df["id"] == task_id, "carry_over"] = True
+
+    new_id = int(current_df["id"].max()) + 1
+    new_row = pd.DataFrame([{
+        "id": new_id,
+        "task_name": row["task_name"],
+        "category": row["category"],
+        "status": "未完成",
+        "date": next_date,
+        "deadline": row["deadline"],
+        "week": "",
+        "weekday": "",
+        "note": row["note"],
+        "carry_over": False,
+    }])
+
+    updated_df = pd.concat([current_df, new_row], ignore_index=True)
+    updated_df = normalize_task_dates(updated_df)
+    save_task_data(updated_df, path)
 # =========================
 # Reading list functions
 # =========================
@@ -880,9 +945,19 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
             st.info("")
         else:
             for row in subset.itertuples():
-                c1, c2, c3 = st.columns([0.45, 0.64, 0.22])
+                c1, c2, c3, c4, c5 = st.columns([0.40, 0.42, 0.16, 0.16, 0.16])
                 with c1:
-                    st.write(row.task_name)
+                    if bool(row.carry_over):
+                        st.markdown(
+                            f"<span style='color:#B56E7B; text-decoration: line-through; text-decoration-color:#D9534F; text-decoration-thickness:2px;'>{row.task_name}</span>",
+                            unsafe_allow_html=True
+                        )
+                        st.caption("已延到下一天")
+                    else:
+                        st.markdown(f"**{row.task_name}**")
+                
+                    if pd.notna(row.deadline):
+                        st.caption(get_deadline_label(row.deadline, row.status))
                 with c2:
                     new_status = st.selectbox(
                         "狀態",
@@ -895,9 +970,49 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                         update_task_status(row.id, new_status)
                         st.rerun()
                 with c3:
+                    if st.button("↷", key=f"carry_{row.id}", use_container_width=True):
+                        carry_task_to_next_day(row.id)
+                        st.rerun()
+                with c4:
+                    if st.button("✏️", key=f"edit_{row.id}", use_container_width=True):
+                        st.session_state[f"editing_task_{row.id}"] = True
+                with c5:
                     if st.button("🗑️", key=f"delete_{row.id}", use_container_width=True):
                         delete_task(row.id)
                         st.rerun()
+                if st.session_state.get(f"editing_task_{row.id}", False):
+                    with st.container():
+                        with st.form(f"edit_form_{row.id}"):
+                            new_name = st.text_input("任務名稱", value=row.task_name)
+                            new_category = st.selectbox(
+                                "分類",
+                                ["學習成長", "日常生活", "自我照顧"],
+                                index=["學習成長", "日常生活", "自我照顧"].index(row.category)
+                            )
+                            new_date = st.date_input("安排日期", value=row.date)
+                            new_deadline = st.date_input(
+                                "Deadline",
+                                value=row.deadline if pd.notna(row.deadline) else row.date
+                            )
+                            new_note = st.text_area("備註", value=row.note if pd.notna(row.note) else "")
+                            col_save, col_cancel = st.columns(2)
+                            save_clicked = col_save.form_submit_button("儲存修改")
+                            cancel_clicked = col_cancel.form_submit_button("取消")
+                
+                            if save_clicked:
+                                update_task(row.id, {
+                                    "task_name": new_name.strip(),
+                                    "category": new_category,
+                                    "date": new_date,
+                                    "deadline": new_deadline,
+                                    "note": new_note.strip(),
+                                })
+                                st.session_state[f"editing_task_{row.id}"] = False
+                                st.rerun()
+                
+                            if cancel_clicked:
+                                st.session_state[f"editing_task_{row.id}"] = False
+                                st.rerun()
 
         with st.expander(f"➕ 新增 {day_name} 任務"):
             with st.form(f"form_{day_name}_{day_date}"):
@@ -906,9 +1021,14 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                 status = st.selectbox("初始狀態", ["未完成", "進行中", "已完成"], key=f"init_status_{day_name}_{day_date}")
                 note = st.text_area("備註", key=f"note_{day_name}_{day_date}")
                 submitted = st.form_submit_button("新增任務")
+                deadline = st.date_input(
+                    "Deadline",
+                    value=day_date,
+                    key=f"deadline_{day_name}_{day_date}"
+                )
                 if submitted:
                     if task_name.strip():
-                        add_task(task_name, category, status, day_date, note)
+                        add_task(task_name, category, status, day_date, deadline, note)
                         st.success("已新增任務")
                         st.rerun()
                     else:
@@ -944,13 +1064,14 @@ with st.sidebar:
         category = st.selectbox("分類", ["學習成長", "日常生活", "自我照顧"])
         status = st.selectbox("狀態", ["未完成", "進行中", "已完成"])
         task_date = st.date_input("日期", value=today_local())
+        deadline = st.date_input("Deadline", value=task_date)
         note = st.text_area("備註", height=80)
         submitted = st.form_submit_button("新增任務")
         if submitted:
             if not task_name.strip():
                 st.warning("請先輸入任務名稱")
             else:
-                add_task(task_name, category, status, task_date, note)
+                add_task(task_name, category, status, task_date, deadline, note)
                 st.success("任務已新增")
                 st.rerun()
 
