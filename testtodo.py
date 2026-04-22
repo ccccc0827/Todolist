@@ -307,7 +307,7 @@ html, body, [class*="css"] {{
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.64rem;
+    font-size: 0.82rem;
 }}
 .today-scroll-wrap {{
     max-height: 320px;
