@@ -1021,7 +1021,7 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                             new_date = st.date_input("安排日期", value=row.date, key=f"edit_date_{row.id}")
                             new_deadline = st.date_input(
                                 "Deadline",
-                                value=row.deadline if pd.notna(row.deadline) else row.date
+                                value=row.deadline if pd.notna(row.deadline) else row.date,
                                 key=f"edit_deadline_{row.id}",
                             )
                             new_note = st.text_area("備註", value=row.note if pd.notna(row.note) else "")
