@@ -388,7 +388,7 @@ div[data-testid="stButton"] > button {{
     border: 1px solid #E7EAF0 !important;
     padding-left: 8px !important;
     padding-right: 18px !important;
-    font-size: 0.5rem !important;
+    font-size: 0.68rem !important;
     line-height: 1 !important;
     display: flex !important;
     align-items: center !important;
