@@ -1472,25 +1472,29 @@ with tab5:
                                 for start_idx in range(0, len(month_days), 7):
                                     row_days = month_days[start_idx:start_idx + 7]
                                     cols = st.columns(7)
-        
-                                    for idx, day_dt in enumerate(row_days):
-                                        day_date = day_dt.date()
-        
-                                        checked = False
-                                        if not habit_log_df.empty:
-                                            matched = habit_log_df[
-                                                (habit_log_df["habit_id"] == habit.id)
-                                                & (pd.to_datetime(habit_log_df["date"]).dt.date == day_date)
-                                            ]
-                                            if not matched.empty:
-                                                checked = bool(matched.iloc[-1]["done"])
-        
+                                
+                                    for idx in range(7):
                                         with cols[idx]:
-                                            val = st.checkbox(
-                                                f"{day_dt.strftime('%d')}",
-                                                value=checked,
-                                                key=f"habit_{habit.id}_{day_date}"
-                                            )
-                                            if val != checked:
-                                                update_habit_log(habit.id, day_date, val)
-                                                st.rerun()
+                                            if idx < len(row_days):
+                                                day_dt = row_days[idx]
+                                                day_date = day_dt.date()
+                                
+                                                checked = False
+                                                if not habit_log_df.empty:
+                                                    matched = habit_log_df[
+                                                        (habit_log_df["habit_id"] == habit.id)
+                                                        & (pd.to_datetime(habit_log_df["date"]).dt.date == day_date)
+                                                    ]
+                                                    if not matched.empty:
+                                                        checked = bool(matched.iloc[-1]["done"])
+                                
+                                                val = st.checkbox(
+                                                    f"{day_dt.strftime('%d')}",
+                                                    value=checked,
+                                                    key=f"habit_{habit.id}_{day_date}"
+                                                )
+                                                if val != checked:
+                                                    update_habit_log(habit.id, day_date, val)
+                                                    st.rerun()
+                                            else:
+                                                st.markdown("&nbsp;", unsafe_allow_html=True)
