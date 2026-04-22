@@ -1361,9 +1361,8 @@ with tab5:
     
             st.markdown("#### 睡眠明細表")
             st.dataframe(sleep_df.sort_values("date", ascending=False), use_container_width=True, hide_index=True)
-        
-     with habit_tab:
-        left, right = st.columns([0.9, 1.6], gap="large")
+            with habit_tab:
+                left, right = st.columns([0.9, 1.6], gap="large")
 
         with left:
             with st.form("add_habit_form", clear_on_submit=True):
