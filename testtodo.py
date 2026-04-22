@@ -1496,5 +1496,5 @@ with tab5:
                                                 if val != checked:
                                                     update_habit_log(habit.id, day_date, val)
                                                     st.rerun()
-                                            else:
-                                                st.markdown("&nbsp;", unsafe_allow_html=True)
+                                                else:
+                                                    st.markdown("&nbsp;", unsafe_allow_html=True)
