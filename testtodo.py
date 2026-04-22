@@ -987,7 +987,7 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
             st.info("")
         else:
             for row in subset.itertuples():
-                c1, c2, c3, c4, c5 = st.columns([0.6, 1, 0.18, 0.18, 0.18], gap="small")
+                c1, c2, c3, c4, c5 = st.columns([0.8, 1.2, 0.2, 0.2, 0.2], gap="small")
                 with c1:
                     if bool(row.carry_over):
                         st.markdown(
@@ -1004,14 +1004,16 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                     if pd.notna(row.deadline):
                         st.caption(get_deadline_label(row.deadline, row.status))
                 with c2:
-                    new_status = st.selectbox(
-                        "狀態",
-                        ["未完成", "進行中", "已完成"],
-                        index=["未完成", "進行中", "已完成"].index(row.status),
-                        key=f"status_{row.id}",
-                        label_visibility="collapsed"
-                    )
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    _, status_col = st.columns([0.08, 0.92], gap="small")
+                    with status_col:
+                        new_status = st.selectbox(
+                            "狀態",
+                            ["未完成", "進行中", "已完成"],
+                            index=["未完成", "進行中", "已完成"].index(row.status),
+                            key=f"status_{row.id}",
+                            label_visibility="collapsed"
+                        )
+                                    st.markdown('</div>', unsafe_allow_html=True)
                 
                     if new_status != row.status:
                         update_task_status(row.id, new_status)
