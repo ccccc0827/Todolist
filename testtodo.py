@@ -1216,7 +1216,7 @@ with tab5:
             all_days = pd.DataFrame({
                 "date": pd.date_range(selected_month_start, month_end, freq="D")
             })
-            all_days["date_label"] = all_days["date"].dt.strftime("%m/%d")
+            all_days["date_label"] = all_days["date"].dt.strftime("%d")
             all_days["month_key"] = all_days["date"].dt.strftime("%Y-%m")
     
             month_df = all_days.merge(
@@ -1227,12 +1227,22 @@ with tab5:
     
             plot_df = month_df.dropna(subset=["gantt_start", "gantt_end"]).copy()
             y_order = month_df["date_label"].tolist()[::-1]
-    
+            
             fig = go.Figure()
-    
+            
+            # 先把整個月所有日期放進 y 軸，避免只顯示有資料的日期
+            fig.add_trace(go.Scatter(
+                x=[datetime(2000, 1, 1, 18, 0)] * len(y_order),
+                y=y_order,
+                mode="markers",
+                marker=dict(size=1, color="rgba(0,0,0,0)"),
+                hoverinfo="skip",
+                showlegend=False
+            ))
+            
             for row in plot_df.itertuples():
                 duration_hours = (row.gantt_end - row.gantt_start).total_seconds() / 3600
-    
+            
                 fig.add_trace(go.Bar(
                     x=[duration_hours],
                     y=[row.date_label],
@@ -1253,11 +1263,15 @@ with tab5:
                     ),
                     showlegend=False
                 ))
-    
+            
             fig.update_yaxes(
+                type="category",
                 categoryorder="array",
                 categoryarray=y_order,
                 title=None,
+                tickmode="array",
+                tickvals=y_order,
+                ticktext=y_order,
                 tickfont=dict(size=11, color="#7A6D72")
             )
     
