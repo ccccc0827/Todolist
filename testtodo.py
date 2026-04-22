@@ -691,23 +691,6 @@ def delete_task(task_id: int, path: str = DEFAULT_CSV):
     current_df = normalize_task_dates(current_df)
     save_task_data(current_df, path)
 
-def update_task(task_id: int, updates: dict, path: str = DEFAULT_CSV):
-    current_df = load_data(path).copy()
-
-    matched_index = current_df.index[current_df["id"] == task_id]
-    if len(matched_index) == 0:
-        return
-
-    idx = matched_index[0]
-
-    for col, value in updates.items():
-        if col in ["date", "deadline"] and value is not None:
-            current_df.at[idx, col] = pd.to_datetime(value).date()
-        else:
-            current_df.at[idx, col] = value
-
-    current_df = normalize_task_dates(current_df)
-    save_task_data(current_df, path)
     
 def carry_task_to_next_day(task_id: int, path: str = DEFAULT_CSV):
     current_df = load_data(path).copy()
