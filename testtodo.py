@@ -353,7 +353,7 @@ div[data-testid="stButton"] > button {{
 }}
 
 .task-card-select {{
-    font-size: 0.5rem;
+    font-size: 1rem;
 }}
 
 .task-card-select h2 {{
