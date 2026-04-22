@@ -1232,7 +1232,7 @@ with tab5:
             
             fig = go.Figure()
             
-            # 先把整個月所有日期放進 y 軸，避免只顯示有資料的日期
+            # 先把整個月所有日期放進 y 軸
             fig.add_trace(go.Scatter(
                 x=[datetime(2000, 1, 1, 18, 0)] * len(y_order),
                 y=y_order,
@@ -1241,6 +1241,30 @@ with tab5:
                 hoverinfo="skip",
                 showlegend=False
             ))
+            
+            for row in plot_df.itertuples():
+                duration_ms = (row.gantt_end - row.gantt_start).total_seconds() * 1000
+            
+                fig.add_trace(go.Bar(
+                    x=[duration_ms],
+                    y=[row.day_num],
+                    base=[row.gantt_start],
+                    orientation="h",
+                    width=0.28,
+                    marker=dict(
+                        color="#E6CDD6",
+                        line=dict(color="#D7B8C4", width=1)
+                    ),
+                    hovertemplate=(
+                        f"{row.date_label}<br>"
+                        f"入睡：{row.sleep_time}<br>"
+                        f"起床：{row.wake_time}<br>"
+                        f"時數：{row.hours} 小時<br>"
+                        f"品質：{row.quality}/5"
+                        "<extra></extra>"
+                    ),
+                    showlegend=False
+                ))
             
             for row in plot_df.itertuples():
                 duration_ms = (row.gantt_end - row.gantt_start).total_seconds() * 1000
