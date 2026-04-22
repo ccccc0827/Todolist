@@ -1471,7 +1471,7 @@ with tab5:
                                 # 每 7 天一排
                                 for start_idx in range(0, len(month_days), 7):
                                     row_days = month_days[start_idx:start_idx + 7]
-                                    cols = st.columns(len(row_days))
+                                    cols = st.columns(7)
         
                                     for idx, day_dt in enumerate(row_days):
                                         day_date = day_dt.date()
