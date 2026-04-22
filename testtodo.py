@@ -635,22 +635,17 @@ def update_task(task_id: int, updates: dict, path: str = DEFAULT_CSV):
     if not mask.any():
         return
 
-    clean_updates = {}
-
     for col, value in updates.items():
         if col in ["date", "deadline"]:
-            clean_updates[col] = (
+            current_df.loc[mask, col] = (
                 pd.to_datetime(value).strftime("%Y-%m-%d")
                 if value not in [None, ""]
                 else ""
             )
         elif col in ["task_name", "category", "note"]:
-            clean_updates[col] = "" if value is None else str(value)
+            current_df.loc[mask, col] = "" if value is None else str(value)
         else:
-            clean_updates[col] = value
-
-    for col, value in clean_updates.items():
-        current_df.loc[mask, col] = value
+            current_df.loc[mask, col] = value
 
     dt = pd.to_datetime(current_df["date"], errors="coerce")
     iso = dt.dt.isocalendar()
