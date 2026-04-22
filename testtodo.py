@@ -1190,146 +1190,146 @@ with tab5:
     sleep_tab, habit_tab = st.tabs(["睡眠紀錄表", "Habit Tracker"])
 
     with sleep_tab:
-    st.markdown("#### 月統計睡眠圖")
-
-    sleep_gantt_df = prepare_sleep_gantt_data(sleep_df)
-
-    if sleep_gantt_df.empty:
-        st.info("目前還沒有睡眠紀錄，無法顯示月統計圖。")
-    else:
-        month_options = sorted(sleep_gantt_df["month_key"].dropna().unique().tolist(), reverse=True)
-        current_month = today_local().strftime("%Y-%m")
-        default_month_index = month_options.index(current_month) if current_month in month_options else 0
-
-        selected_sleep_month = st.selectbox(
-            "選擇月份",
-            month_options,
-            index=default_month_index,
-            format_func=lambda x: x.replace("-", "/"),
-            key="sleep_month_selector"
-        )
-
-        selected_month_start = pd.to_datetime(f"{selected_sleep_month}-01")
-        next_month_start = selected_month_start + pd.offsets.MonthBegin(1)
-        month_end = next_month_start - pd.Timedelta(days=1)
-
-        all_days = pd.DataFrame({
-            "date": pd.date_range(selected_month_start, month_end, freq="D")
-        })
-        all_days["date_label"] = all_days["date"].dt.strftime("%m/%d")
-        all_days["month_key"] = all_days["date"].dt.strftime("%Y-%m")
-
-        month_df = all_days.merge(
-            sleep_gantt_df,
-            on=["date", "date_label", "month_key"],
-            how="left"
-        )
-
-        plot_df = month_df.dropna(subset=["gantt_start", "gantt_end"]).copy()
-        y_order = month_df["date_label"].tolist()[::-1]
-
-        fig = go.Figure()
-
-        for row in plot_df.itertuples():
-            duration_hours = (row.gantt_end - row.gantt_start).total_seconds() / 3600
-
-            fig.add_trace(go.Bar(
-                x=[duration_hours],
-                y=[row.date_label],
-                base=[row.gantt_start],
-                orientation="h",
-                width=0.28,
-                marker=dict(
-                    color="#E6CDD6",
-                    line=dict(color="#D7B8C4", width=1)
-                ),
-                hovertemplate=(
-                    f"{row.date_label}<br>"
-                    f"入睡：{row.sleep_time}<br>"
-                    f"起床：{row.wake_time}<br>"
-                    f"時數：{row.hours} 小時<br>"
-                    f"品質：{row.quality}/5"
-                    "<extra></extra>"
-                ),
-                showlegend=False
-            ))
-
-        fig.update_yaxes(
-            categoryorder="array",
-            categoryarray=y_order,
-            title=None,
-            tickfont=dict(size=11, color="#7A6D72")
-        )
-
-        fig.update_xaxes(
-            title="時間",
-            tickformat="%H:%M",
-            range=[datetime(2000, 1, 1, 18, 0), datetime(2000, 1, 2, 12, 0)],
-            tickfont=dict(size=11, color="#8A8084"),
-            title_font=dict(size=13, color="#7A6D72"),
-            gridcolor="#F0E6E9"
-        )
-
-        fig.update_layout(
-            height=max(520, len(month_df) * 22 + 80),
-            margin=dict(l=20, r=20, t=20, b=20),
-            paper_bgcolor="#FCFAF9",
-            plot_bgcolor="#FFFDF8",
-            bargap=0.55,
-        )
-
-        st.plotly_chart(fig, use_container_width=True)
-
-    st.markdown("---")
-
-    left, right = st.columns([1.0, 1.4], gap="large")
-
-    with left:
-        with st.form("sleep_form", clear_on_submit=True):
-            log_date = st.date_input("日期", value=today_local(), key="sleep_date")
-            sleep_time = st.text_input("入睡時間（HH:MM）", value="01:00")
-            wake_time = st.text_input("起床時間（HH:MM）", value="09:00")
-            quality = st.slider("睡眠品質", 1, 5, 3)
-            note = st.text_area("備註")
-            submitted = st.form_submit_button("儲存睡眠紀錄")
-            if submitted:
-                try:
-                    datetime.strptime(sleep_time, "%H:%M")
-                    datetime.strptime(wake_time, "%H:%M")
-                    add_sleep_log(log_date, sleep_time, wake_time, quality, note)
-                    st.success("已儲存睡眠紀錄")
-                    st.rerun()
-                except ValueError:
-                    st.error("時間格式請輸入 HH:MM，例如 01:30")
-
-        if not sleep_df.empty:
-            avg_hours = round(float(sleep_df["hours"].mean()), 1)
-            avg_quality = round(float(sleep_df["quality"].mean()), 1)
-            c1, c2 = st.columns(2)
-            c1.metric("平均睡眠時數", f"{avg_hours} h")
-            c2.metric("平均睡眠品質", f"{avg_quality} / 5")
-
-    with right:
-        st.markdown("#### 最近睡眠紀錄")
-        if sleep_df.empty:
-            st.info("目前還沒有睡眠紀錄。")
+        st.markdown("#### 月統計睡眠圖")
+    
+        sleep_gantt_df = prepare_sleep_gantt_data(sleep_df)
+    
+        if sleep_gantt_df.empty:
+            st.info("目前還沒有睡眠紀錄，無法顯示月統計圖。")
         else:
-            for row in sleep_df.sort_values("date", ascending=False).head(14).itertuples():
-                with st.container(border=True):
-                    c1, c2 = st.columns([1.25, 0.2])
-                    with c1:
-                        st.markdown(f"**{row.date}**")
-                        st.write(f"{row.sleep_time} → {row.wake_time}　｜　{row.hours} 小時")
-                        st.caption(f"品質：{row.quality}/5")
-                        if str(row.note).strip():
-                            st.write(row.note)
-                    with c2:
-                        if st.button("🗑️", key=f"del_sleep_{row.date}"):
-                            delete_sleep_log(row.date)
-                            st.rerun()
-
-        st.markdown("#### 睡眠明細表")
-        st.dataframe(sleep_df.sort_values("date", ascending=False), use_container_width=True, hide_index=True)
+            month_options = sorted(sleep_gantt_df["month_key"].dropna().unique().tolist(), reverse=True)
+            current_month = today_local().strftime("%Y-%m")
+            default_month_index = month_options.index(current_month) if current_month in month_options else 0
+    
+            selected_sleep_month = st.selectbox(
+                "選擇月份",
+                month_options,
+                index=default_month_index,
+                format_func=lambda x: x.replace("-", "/"),
+                key="sleep_month_selector"
+            )
+    
+            selected_month_start = pd.to_datetime(f"{selected_sleep_month}-01")
+            next_month_start = selected_month_start + pd.offsets.MonthBegin(1)
+            month_end = next_month_start - pd.Timedelta(days=1)
+    
+            all_days = pd.DataFrame({
+                "date": pd.date_range(selected_month_start, month_end, freq="D")
+            })
+            all_days["date_label"] = all_days["date"].dt.strftime("%m/%d")
+            all_days["month_key"] = all_days["date"].dt.strftime("%Y-%m")
+    
+            month_df = all_days.merge(
+                sleep_gantt_df,
+                on=["date", "date_label", "month_key"],
+                how="left"
+            )
+    
+            plot_df = month_df.dropna(subset=["gantt_start", "gantt_end"]).copy()
+            y_order = month_df["date_label"].tolist()[::-1]
+    
+            fig = go.Figure()
+    
+            for row in plot_df.itertuples():
+                duration_hours = (row.gantt_end - row.gantt_start).total_seconds() / 3600
+    
+                fig.add_trace(go.Bar(
+                    x=[duration_hours],
+                    y=[row.date_label],
+                    base=[row.gantt_start],
+                    orientation="h",
+                    width=0.28,
+                    marker=dict(
+                        color="#E6CDD6",
+                        line=dict(color="#D7B8C4", width=1)
+                    ),
+                    hovertemplate=(
+                        f"{row.date_label}<br>"
+                        f"入睡：{row.sleep_time}<br>"
+                        f"起床：{row.wake_time}<br>"
+                        f"時數：{row.hours} 小時<br>"
+                        f"品質：{row.quality}/5"
+                        "<extra></extra>"
+                    ),
+                    showlegend=False
+                ))
+    
+            fig.update_yaxes(
+                categoryorder="array",
+                categoryarray=y_order,
+                title=None,
+                tickfont=dict(size=11, color="#7A6D72")
+            )
+    
+            fig.update_xaxes(
+                title="時間",
+                tickformat="%H:%M",
+                range=[datetime(2000, 1, 1, 18, 0), datetime(2000, 1, 2, 12, 0)],
+                tickfont=dict(size=11, color="#8A8084"),
+                title_font=dict(size=13, color="#7A6D72"),
+                gridcolor="#F0E6E9"
+            )
+    
+            fig.update_layout(
+                height=max(520, len(month_df) * 22 + 80),
+                margin=dict(l=20, r=20, t=20, b=20),
+                paper_bgcolor="#FCFAF9",
+                plot_bgcolor="#FFFDF8",
+                bargap=0.55,
+            )
+    
+            st.plotly_chart(fig, use_container_width=True)
+    
+        st.markdown("---")
+    
+        left, right = st.columns([1.0, 1.4], gap="large")
+    
+        with left:
+            with st.form("sleep_form", clear_on_submit=True):
+                log_date = st.date_input("日期", value=today_local(), key="sleep_date")
+                sleep_time = st.text_input("入睡時間（HH:MM）", value="01:00")
+                wake_time = st.text_input("起床時間（HH:MM）", value="09:00")
+                quality = st.slider("睡眠品質", 1, 5, 3)
+                note = st.text_area("備註")
+                submitted = st.form_submit_button("儲存睡眠紀錄")
+                if submitted:
+                    try:
+                        datetime.strptime(sleep_time, "%H:%M")
+                        datetime.strptime(wake_time, "%H:%M")
+                        add_sleep_log(log_date, sleep_time, wake_time, quality, note)
+                        st.success("已儲存睡眠紀錄")
+                        st.rerun()
+                    except ValueError:
+                        st.error("時間格式請輸入 HH:MM，例如 01:30")
+    
+            if not sleep_df.empty:
+                avg_hours = round(float(sleep_df["hours"].mean()), 1)
+                avg_quality = round(float(sleep_df["quality"].mean()), 1)
+                c1, c2 = st.columns(2)
+                c1.metric("平均睡眠時數", f"{avg_hours} h")
+                c2.metric("平均睡眠品質", f"{avg_quality} / 5")
+    
+        with right:
+            st.markdown("#### 最近睡眠紀錄")
+            if sleep_df.empty:
+                st.info("目前還沒有睡眠紀錄。")
+            else:
+                for row in sleep_df.sort_values("date", ascending=False).head(14).itertuples():
+                    with st.container(border=True):
+                        c1, c2 = st.columns([1.25, 0.2])
+                        with c1:
+                            st.markdown(f"**{row.date}**")
+                            st.write(f"{row.sleep_time} → {row.wake_time}　｜　{row.hours} 小時")
+                            st.caption(f"品質：{row.quality}/5")
+                            if str(row.note).strip():
+                                st.write(row.note)
+                        with c2:
+                            if st.button("🗑️", key=f"del_sleep_{row.date}"):
+                                delete_sleep_log(row.date)
+                                st.rerun()
+    
+            st.markdown("#### 睡眠明細表")
+            st.dataframe(sleep_df.sort_values("date", ascending=False), use_container_width=True, hide_index=True)
     with habit_tab:
         left, right = st.columns([0.9, 1.6], gap="large")
 
