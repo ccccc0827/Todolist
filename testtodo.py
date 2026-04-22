@@ -635,6 +635,11 @@ def update_task(task_id: int, updates: dict, path: str = DEFAULT_CSV):
     if not mask.any():
         return
 
+    # 先把容易出 dtype 問題的欄位轉成 object
+    for col in ["task_name", "category", "note", "date", "deadline"]:
+        if col in current_df.columns:
+            current_df[col] = current_df[col].astype("object")
+
     for col, value in updates.items():
         if col in ["date", "deadline"]:
             current_df.loc[mask, col] = (
@@ -654,7 +659,6 @@ def update_task(task_id: int, updates: dict, path: str = DEFAULT_CSV):
 
     current_df.to_csv(path, index=False)
     st.cache_data.clear()
-
 
 def add_task(
     task_name: str,
