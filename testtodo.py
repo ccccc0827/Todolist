@@ -57,6 +57,8 @@ DEFAULT_CSV = "tasks.csv"
 READING_CSV = "reading_list.csv"
 SLEEP_CSV = "sleep_log.csv"
 HABIT_CSV = "habit_tracker.csv"
+HABIT_LOG_CSV = "habit_log.csv"
+
 APP_TZ = ZoneInfo("Asia/Taipei")
 
 def today_local() -> date:
@@ -457,7 +459,27 @@ def create_habit_csv(path: str):
         columns=["id", "habit_name", *days],
     )
     sample.to_csv(path, index=False)
+    
+def create_habit_log_csv(path: str):
+    sample = pd.DataFrame(
+        columns=["habit_id", "date", "done"]
+    )
+    sample.to_csv(path, index=False)
 
+
+@st.cache_data
+def load_habit_log_data(path: str = HABIT_LOG_CSV) -> pd.DataFrame:
+    if not Path(path).exists():
+        create_habit_log_csv(path)
+    df = pd.read_csv(path)
+    if not df.empty:
+        df["date"] = pd.to_datetime(df["date"]).dt.date
+    return df
+
+
+def save_habit_log_data(df: pd.DataFrame, path: str = HABIT_LOG_CSV):
+    df.to_csv(path, index=False)
+    st.cache_data.clear()
 
 @st.cache_data
 def load_data(path: str = DEFAULT_CSV) -> pd.DataFrame:
