@@ -1013,7 +1013,7 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                             key=f"status_{row.id}",
                             label_visibility="collapsed"
                         )
-                            st.markdown('</div>', unsafe_allow_html=True)
+                        st.markdown('</div>', unsafe_allow_html=True)
                 
                     if new_status != row.status:
                         update_task_status(row.id, new_status)
