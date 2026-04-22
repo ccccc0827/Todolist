@@ -364,43 +364,39 @@ div[data-testid="stButton"] > button {{
 
 .task-card-select p,
 .task-card-select label,
-task-card-select p,
+.task-card-select p,
 .task-card-select label {{
     font-size: 0.72rem !important;
 }}
 
 .task-card-select div[data-testid="stSelectbox"] {{
-    max-width: 48px;
+    width: 62px !important;
+    min-width: 62px !important;
+    max-width: 62px !important;
 }}
 
 .task-card-select div[data-testid="stSelectbox"] [data-baseweb="select"] {{
-    width: 48px !important;
+    width: 62px !important;
+    min-width: 62px !important;
 }}
 
 .task-card-select div[data-testid="stSelectbox"] [data-baseweb="select"] > div {{
-    min-height: 24px;
-    height: 24px;
-    background: #F3F5F8;
-    border-radius: 8px;
-    border: 1px solid #E7EAF0;
-    font-size: 0.72rem !important;
-    padding-top: 0;
-    padding-bottom: 0;
-    padding-left: 6px;
-    padding-right: 22px;
+    min-height: 22px !important;
+    height: 22px !important;
+    padding-left: 6px !important;
+    padding-right: 18px !important;
+    border-radius: 8px !important;
+    font-size: 0.62rem !important;
+    line-height: 1 !important;
 }}
 
-.task-card-select div[data-testid="stSelectbox"] input {{
-    font-size: 0.5rem !important;
-}}
-
-.task-card-select div[data-testid="stSelectbox"] span {{
-    font-size: 0.5rem !important;
+.task-card-select div[data-testid="stSelectbox"] * {{
+    font-size: 0.62rem !important;
 }}
 
 .task-card-select div[data-testid="stSelectbox"] svg {{
-    width: 6px;
-    height: 6px;
+    width: 7px !important;
+    height: 7px !important;
 }}
 
 div[data-testid="stButton"] > button {{
@@ -1071,7 +1067,7 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                 )
                 if submitted:
                     if task_name.strip():
-                        add_task(task_name, category, status, task_date, deadline=None, note="", carry_over=False)
+                        add_task(task_name, category, status, day_date, deadline, note)
                         st.success("已新增任務")
                         st.rerun()
                     else:
