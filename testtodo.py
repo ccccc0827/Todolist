@@ -362,23 +362,23 @@ div[data-testid="stButton"] > button {{
     margin-bottom: 0.15rem !important;
 }}
 .task-card-select div[data-testid="stSelectbox"] {{
-    width: 68px !important;
-    min-width: 68px !important;
-    max-width: 68px !important;
+    width: 48px !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
 }}
 
 .task-card-select div[data-testid="stSelectbox"] [data-baseweb="select"] {{
-    width: 68px !important;
-    min-width: 68px !important;
+    width: 48px !important;
+    min-width: 48px !important;
 }}
 
 .task-card-select div[data-testid="stSelectbox"] [data-baseweb="select"] > div {{
-    min-height: 22px !important;
-    height: 22px !important;
+    min-height: 18px !important;
+    height: 18px !important;
     border-radius: 10px !important;
     background: #F3F5F8 !important;
     border: 1px solid #E7EAF0 !important;
-    padding-left: 8px !important;
+    padding-left: 6px !important;
     padding-right: 16px !important;
     display: flex !important;
     align-items: center !important;
