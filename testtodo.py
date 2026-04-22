@@ -1208,26 +1208,25 @@ with tab5:
             index=default_month_index,
             format_func=lambda x: x.replace("-", "/"),             
             key="sleep_month_selector"
-            )
+        )
+        sleep_df_for_stats = sleep_df.copy()
+        sleep_df_for_stats["date"] = pd.to_datetime(sleep_df_for_stats["date"])
+        sleep_df_for_stats["month_key"] = sleep_df_for_stats["date"].dt.strftime("%Y-%m")
             
-            sleep_df_for_stats = sleep_df.copy()
-            sleep_df_for_stats["date"] = pd.to_datetime(sleep_df_for_stats["date"])
-            sleep_df_for_stats["month_key"] = sleep_df_for_stats["date"].dt.strftime("%Y-%m")
+        selected_month_sleep_df = sleep_df_for_stats[
+        sleep_df_for_stats["month_key"] == selected_sleep_month
+        ].copy()
+        
+        selected_month_start = pd.to_datetime(f"{selected_sleep_month}-01")
+        next_month_start = selected_month_start + pd.offsets.MonthBegin(1)
+        month_end = next_month_start - pd.Timedelta(days=1)
             
-            selected_month_sleep_df = sleep_df_for_stats[
-                sleep_df_for_stats["month_key"] == selected_sleep_month
-            ].copy()
-            
-            selected_month_start = pd.to_datetime(f"{selected_sleep_month}-01")
-            next_month_start = selected_month_start + pd.offsets.MonthBegin(1)
-            month_end = next_month_start - pd.Timedelta(days=1)
-            
-            all_days = pd.DataFrame({
-                "date": pd.date_range(selected_month_start, month_end, freq="D")
-            })
-            all_days["date_label"] = all_days["date"].dt.strftime("%m/%d")
-            all_days["day_num"] = all_days["date"].dt.strftime("%d")
-            all_days["month_key"] = all_days["date"].dt.strftime("%Y-%m")
+        all_days = pd.DataFrame({
+            "date": pd.date_range(selected_month_start, month_end, freq="D")
+        })
+        all_days["date_label"] = all_days["date"].dt.strftime("%m/%d")
+        all_days["day_num"] = all_days["date"].dt.strftime("%d")
+        all_days["month_key"] = all_days["date"].dt.strftime("%Y-%m")
             
             month_df = all_days.merge(
                 sleep_gantt_df,
