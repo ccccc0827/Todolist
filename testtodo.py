@@ -1202,12 +1202,12 @@ with tab5:
             current_month = today_local().strftime("%Y-%m")
             default_month_index = month_options.index(current_month)    
             
-           selected_sleep_month = st.selectbox(
-                "選擇月份",
-                month_options,
-                index=default_month_index,
-                format_func=lambda x: x.replace("-", "/"),
-                key="sleep_month_selector"
+        selected_sleep_month = st.selectbox(
+             "選擇月份",
+            month_options,
+            index=default_month_index,
+            format_func=lambda x: x.replace("-", "/"),             
+            key="sleep_month_selector"
             )
             
             sleep_df_for_stats = sleep_df.copy()
