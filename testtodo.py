@@ -1048,7 +1048,7 @@ with tab1:
         
                 reading_preview_html = "".join(preview_blocks)
         
-           memo_html = dedent(f"""
+             memo_html = dedent(f"""
             <div class="memo-box">
                 <div class="memo-title">待讀書單 ♡</div>
                 {reading_preview_html}
