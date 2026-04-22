@@ -351,9 +351,7 @@ div[data-testid="stButton"] > button {{
     min-height: 34px;
     padding: 0 8px;
 }}
-.task-card-select div[data-testid="stSelectbox"] > div {{
-    border-radius: 8px;
-}}
+
 .task-card-select {{
     font-size: 0.5rem;
 }}
@@ -366,23 +364,38 @@ div[data-testid="stButton"] > button {{
 
 .task-card-select p,
 .task-card-select label,
-.task-card-select span {{
+task-card-select p,
+.task-card-select label {{
     font-size: 0.72rem !important;
 }}
 
+.task-card-select div[data-testid="stSelectbox"] {{
+    max-width: 64px;
+}}
+
+.task-card-select div[data-testid="stSelectbox"] [data-baseweb="select"] {{
+    width: 64px !important;
+}}
+
 .task-card-select div[data-testid="stSelectbox"] [data-baseweb="select"] > div {{
-    min-height: 18px;
+    min-height: 24px;
+    height: 24px;
     background: #F3F5F8;
     border-radius: 8px;
     border: 1px solid #E7EAF0;
-    font-size: 0.5rem;
+    font-size: 0.72rem !important;
     padding-top: 0;
     padding-bottom: 0;
-    min-width: 100%;
+    padding-left: 6px;
+    padding-right: 22px;
 }}
 
 .task-card-select div[data-testid="stSelectbox"] input {{
     font-size: 0.5rem !important;
+}}
+
+.task-card-select div[data-testid="stSelectbox"] span {{
+    font-size: 0.72rem !important;
 }}
 
 .task-card-select div[data-testid="stSelectbox"] svg {{
