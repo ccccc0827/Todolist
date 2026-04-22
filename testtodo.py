@@ -388,7 +388,7 @@ div[data-testid="stButton"] > button {{
     border: 1px solid #E7EAF0 !important;
     padding-left: 8px !important;
     padding-right: 18px !important;
-    font-size: 0.68rem !important;
+    font-size: 0.54rem !important;
     line-height: 1 !important;
     display: flex !important;
     align-items: center !important;
@@ -396,14 +396,18 @@ div[data-testid="stButton"] > button {{
 }}
 
 .task-card-select div[data-testid="stSelectbox"] * {{
-    font-size: 0.62rem !important;
+    font-size: 0.54rem !important;
 }}
 
 .task-card-select div[data-testid="stSelectbox"] svg {{
     width: 7px !important;
     height: 7px !important;
 }}
-
+.task-card-select div[data-testid="stSelectbox"] span,
+.task-card-select div[data-testid="stSelectbox"] div,
+.task-card-select div[data-testid="stSelectbox"] input {{
+    font-size: 0.54rem !important;
+}}
 div[data-testid="stButton"] > button {{
     border-radius: 8px;
     min-height: 18px;
