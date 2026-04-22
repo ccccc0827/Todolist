@@ -1190,68 +1190,68 @@ with tab5:
     sleep_tab, habit_tab = st.tabs(["睡眠紀錄表", "Habit Tracker"])
 
     with sleep_tab:
-    st.markdown("#### 月統計睡眠甘特圖")
+        st.markdown("#### 月統計睡眠甘特圖")
 
-    sleep_gantt_df = prepare_sleep_gantt_data(sleep_df)
-
-    if sleep_gantt_df.empty:
-        st.info("目前還沒有睡眠紀錄，無法顯示月統計甘特圖。")
-    else:
-        month_options = sorted(sleep_gantt_df["month_key"].dropna().unique().tolist(), reverse=True)
-        current_month = today_local().strftime("%Y-%m")
-
-        default_month_index = month_options.index(current_month) if current_month in month_options else 0
-
-        selected_sleep_month = st.selectbox(
-            "選擇月份",
-            month_options,
-            index=default_month_index,
-            format_func=lambda x: x.replace("-", "/"),
-            key="sleep_month_selector"
-        )
-
-        month_df = sleep_gantt_df[sleep_gantt_df["month_key"] == selected_sleep_month].copy()
-
-        if month_df.empty:
-            st.info("這個月份目前沒有睡眠資料。")
+        sleep_gantt_df = prepare_sleep_gantt_data(sleep_df)
+    
+        if sleep_gantt_df.empty:
+            st.info("目前還沒有睡眠紀錄，無法顯示月統計甘特圖。")
         else:
-            fig = px.timeline(
-                month_df,
-                x_start="gantt_start",
-                x_end="gantt_end",
-                y="date_label",
-                color="quality",
-                hover_data={
-                    "sleep_time": True,
-                    "wake_time": True,
-                    "hours": True,
-                    "quality": True,
-                    "gantt_start": False,
-                    "gantt_end": False,
-                    "date_label": False,
-                },
+            month_options = sorted(sleep_gantt_df["month_key"].dropna().unique().tolist(), reverse=True)
+            current_month = today_local().strftime("%Y-%m")
+    
+            default_month_index = month_options.index(current_month) if current_month in month_options else 0
+    
+            selected_sleep_month = st.selectbox(
+                "選擇月份",
+                month_options,
+                index=default_month_index,
+                format_func=lambda x: x.replace("-", "/"),
+                key="sleep_month_selector"
             )
-
-            fig.update_yaxes(
-                autorange="reversed",
-                title=None
-            )
-
-            fig.update_xaxes(
-                title="時間",
-                tickformat="%H:%M",
-                range=[datetime(2000, 1, 1, 18, 0), datetime(2000, 1, 2, 12, 0)]
-            )
-
-            fig.update_layout(
-                height=max(350, len(month_df) * 28 + 120),
-                margin=dict(l=10, r=10, t=10, b=10),
-                coloraxis_colorbar_title="品質"
-            )
-
-            st.plotly_chart(fig, use_container_width=True)
-
-    st.markdown("---")
+    
+            month_df = sleep_gantt_df[sleep_gantt_df["month_key"] == selected_sleep_month].copy()
+    
+            if month_df.empty:
+                st.info("這個月份目前沒有睡眠資料。")
+            else:
+                fig = px.timeline(
+                    month_df,
+                    x_start="gantt_start",
+                    x_end="gantt_end",
+                    y="date_label",
+                    color="quality",
+                    hover_data={
+                        "sleep_time": True,
+                        "wake_time": True,
+                        "hours": True,
+                        "quality": True,
+                        "gantt_start": False,
+                        "gantt_end": False,
+                        "date_label": False,
+                    },
+                )
+    
+                fig.update_yaxes(
+                    autorange="reversed",
+                    title=None
+                )
+    
+                fig.update_xaxes(
+                    title="時間",
+                    tickformat="%H:%M",
+                    range=[datetime(2000, 1, 1, 18, 0), datetime(2000, 1, 2, 12, 0)]
+                )
+    
+                fig.update_layout(
+                    height=max(350, len(month_df) * 28 + 120),
+                    margin=dict(l=10, r=10, t=10, b=10),
+                    coloraxis_colorbar_title="品質"
+                )
+    
+                st.plotly_chart(fig, use_container_width=True)
+    
+        st.markdown("---")
         left, right = st.columns([1.0, 1.4], gap="large")
 
         with left:
