@@ -628,11 +628,37 @@ def save_habit_data(df: pd.DataFrame, path: str = HABIT_CSV):
 # =========================
 # Task functions
 # =========================
-def update_task_status(task_id: int, new_status: str, path: str = DEFAULT_CSV):
-    current_df = load_data(path).copy()
-    current_df.loc[current_df["id"] == task_id, "status"] = new_status
-    current_df = normalize_task_dates(current_df)
-    save_task_data(current_df, path)
+def update_task(task_id: int, updates: dict, path: str = DEFAULT_CSV):
+    current_df = pd.read_csv(path).copy()
+
+    mask = current_df["id"] == task_id
+    if not mask.any():
+        return
+
+    clean_updates = {}
+
+    for col, value in updates.items():
+        if col in ["date", "deadline"]:
+            clean_updates[col] = (
+                pd.to_datetime(value).strftime("%Y-%m-%d")
+                if value not in [None, ""]
+                else ""
+            )
+        elif col in ["task_name", "category", "note"]:
+            clean_updates[col] = "" if value is None else str(value)
+        else:
+            clean_updates[col] = value
+
+    for col, value in clean_updates.items():
+        current_df.loc[mask, col] = value
+
+    dt = pd.to_datetime(current_df["date"], errors="coerce")
+    iso = dt.dt.isocalendar()
+    current_df["week"] = "W" + iso.week.astype(str)
+    current_df["weekday"] = dt.dt.strftime("%a")
+
+    current_df.to_csv(path, index=False)
+    st.cache_data.clear()
 
 
 def add_task(
