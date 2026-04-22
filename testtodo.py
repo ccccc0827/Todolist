@@ -981,7 +981,7 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
         with top_right:
             st.markdown(f"**{day_date.month}/{day_date.day}**")
 
-        st.markdown("**任務項目　　　　　　狀態**")
+        st.markdown("**任務項目　　　　狀態**")
 
         if subset.empty:
             st.info("")
