@@ -1070,7 +1070,7 @@ def render_day_panel(day_name: str, day_date: date, frame: pd.DataFrame, selecte
                 deadline = st.date_input(
                     "Deadline",
                     value=day_date,
-                    key="tab3_deadline"
+                    key=f"deadline_{day_name}_{day_date}"
                 )
                 if submitted:
                     if task_name.strip():
