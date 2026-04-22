@@ -1197,10 +1197,11 @@ with tab5:
         if sleep_gantt_df.empty:
             st.info("目前還沒有睡眠紀錄，無法顯示月統計圖。")
         else:
-            month_options = sorted(sleep_gantt_df["month_key"].dropna().unique().tolist(), reverse=True)
+            current_year = today_local().year
+            month_options = [f"{current_year}-{m:02d}" for m in range(1, 13)]
             current_month = today_local().strftime("%Y-%m")
-            default_month_index = month_options.index(current_month) if current_month in month_options else 0
-    
+            default_month_index = month_options.index(current_month)    
+            
             selected_sleep_month = st.selectbox(
                 "選擇月份",
                 month_options,
