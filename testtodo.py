@@ -2102,46 +2102,62 @@ with tab6:
             weekday = weekday_names[i]
             day_data = get_or_create_gratitude_day(grat_year, grat_week, day_date, weekday)
 
-            with top_row[i]:
+            with st.container(border=True):
                 st.markdown(
                     f"""
-                    <div class="grat-day-card">
-                        <div class="grat-day-date">{day_date.day}</div>
-                        <div class="grat-day-name">{weekday}.</div>
-                        <div class="grat-day-label">今日感謝的三件事</div>
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                        <div style="
+                            width:42px; height:42px; border-radius:999px;
+                            background:#F7DDE6;
+                            display:flex; align-items:center; justify-content:center;
+                            font-weight:700; color:#6A555B;
+                        ">
+                            {day_date.day}
+                        </div>
+                        <div>
+                            <div style="font-weight:800; color:#4F4447;">{weekday}.</div>
+                            <div style="font-size:0.72rem; color:#8A7B80;">今日感謝的三件事</div>
+                        </div>
+                    </div>
                     """,
                     unsafe_allow_html=True,
                 )
-
-                g1 = st.text_input(
-                    "grat1",
-                    value=day_data.get("gratitude_1", ""),
+            
+                g1 = st.text_area(
+                    "第一件感謝的小事",
+                    value="" if pd.isna(day_data.get("gratitude_1", "")) else day_data.get("gratitude_1", ""),
                     placeholder="第一件感謝的小事",
+                    height=65,
                     key=f"grat_1_{grat_year}_{grat_week}_{weekday}",
-                    label_visibility="collapsed"
+                    label_visibility="collapsed",
                 )
-                g2 = st.text_input(
-                    "grat2",
-                    value=day_data.get("gratitude_2", ""),
+            
+                g2 = st.text_area(
+                    "第二件感謝的小事",
+                    value="" if pd.isna(day_data.get("gratitude_2", "")) else day_data.get("gratitude_2", ""),
                     placeholder="第二件感謝的小事",
+                    height=65,
                     key=f"grat_2_{grat_year}_{grat_week}_{weekday}",
-                    label_visibility="collapsed"
+                    label_visibility="collapsed",
                 )
-                g3 = st.text_input(
-                    "grat3",
-                    value=day_data.get("gratitude_3", ""),
+            
+                g3 = st.text_area(
+                    "第三件感謝的小事",
+                    value="" if pd.isna(day_data.get("gratitude_3", "")) else day_data.get("gratitude_3", ""),
                     placeholder="第三件感謝的小事",
+                    height=65,
                     key=f"grat_3_{grat_year}_{grat_week}_{weekday}",
-                    label_visibility="collapsed"
+                    label_visibility="collapsed",
                 )
+            
                 mood = st.text_input(
-                    "mood",
-                    value=day_data.get("mood", ""),
+                    "Mood / 心情",
+                    value="" if pd.isna(day_data.get("mood", "")) else day_data.get("mood", ""),
                     placeholder="Mood / 心情",
                     key=f"grat_mood_{grat_year}_{grat_week}_{weekday}",
-                    label_visibility="collapsed"
+                    label_visibility="collapsed",
                 )
-
+            
                 if st.button("儲存", key=f"save_grat_{grat_year}_{grat_week}_{weekday}", use_container_width=True):
                     update_gratitude_day(
                         grat_year, grat_week, day_date, weekday,
