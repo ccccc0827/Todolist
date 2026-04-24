@@ -573,6 +573,82 @@ div[data-testid="stButton"] > button {{
     unsafe_allow_html=True,
 )
 
+st.markdown("""
+<style>
+.memo-card{
+    background: #ffffff;
+    border: 1.5px solid #efd6dd;
+    border-radius: 24px;
+    padding: 22px 22px 18px 22px;
+    margin-bottom: 24px;
+}
+
+.memo-title{
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #5b4a4f;
+    margin-bottom: 6px;
+}
+
+.memo-subtitle{
+    font-size: 1rem;
+    color: #9c7f87;
+    margin-bottom: 16px;
+}
+
+.memo-card [data-testid="stTextArea"] {
+    margin-top: 6px !important;
+}
+
+.memo-card [data-testid="stTextArea"] > div {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.memo-card [data-testid="stTextArea"] div[data-baseweb="textarea"] {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.memo-card [data-testid="stTextArea"] div[data-baseweb="textarea"] > div {
+    background: transparent !important;
+}
+
+.memo-card [data-testid="stTextArea"] textarea {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    color: #5b4a4f !important;
+    font-size: 20px !important;
+    line-height: 1.8 !important;
+    padding: 0 !important;
+    min-height: 220px !important;
+    resize: vertical !important;
+}
+
+.memo-card [data-testid="stTextArea"] textarea::placeholder {
+    color: #b7a7ad !important;
+}
+
+.memo-card .stButton > button {
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid #d8c7cd;
+    background: #fff;
+    color: #5b4a4f;
+    font-size: 18px;
+    padding: 0.45rem 1rem;
+}
+
+.memo-card .stButton > button:hover {
+    border-color: #cfaeb8;
+    color: #a56c7a;
+}
+</style>
+""", unsafe_allow_html=True)
 
 def status_pill_html(status: str) -> str:
     bg_map = {
@@ -2313,71 +2389,65 @@ with tab6:
                 render_grat_day_card(day_date, weekday, grat_year, grat_week)
 
     with side_col:
+        def safe_str(x):
+            return "" if pd.isna(x) else str(x)
+    
         week_data = get_or_create_gratitude_week(grat_year, grat_week)
-
-        st.markdown(
-            """
-            <div class="grat-side-card">
-                <div class="grat-side-title">This Week’s Little Joys ✨</div>
-                <div class="grat-side-sub">本週小亮點回顧</div>
-            """,
-            unsafe_allow_html=True,
-        )
-
+    
+        weekly_highlight_default = safe_str(week_data.get("weekly_highlight", ""))
+        free_note_default = safe_str(week_data.get("free_note", ""))
+    
+        # 第一張卡
+        st.markdown('<div class="memo-card">', unsafe_allow_html=True)
+        st.markdown('<div class="memo-title">This Week’s Little Joys ✨</div>', unsafe_allow_html=True)
+        st.markdown('<div class="memo-subtitle">本週小亮點回顧</div>', unsafe_allow_html=True)
+    
         weekly_highlight = st.text_area(
-            "weekly_highlight",
-            value=week_data.get("weekly_highlight", ""),
+            "本週回顧",
+            value=weekly_highlight_default,
             placeholder="這週有什麼讓妳會心一笑的事呢？",
-            height=220,
-            key=f"weekly_highlight_{grat_year}_{grat_week}",
-            label_visibility="collapsed"
+            height=260,
+            label_visibility="collapsed",
+            key="weekly_highlight_input"
         )
-
-        if st.button("儲存本週回顧", key=f"save_week_highlight_{grat_year}_{grat_week}", use_container_width=True):
+    
+        if st.button("儲存本週回顧", key="save_weekly_highlight_btn"):
             update_gratitude_week(
                 grat_year,
                 grat_week,
                 weekly_highlight,
-                week_data.get("free_note", "")
+                safe_str(st.session_state.get("free_note_input", free_note_default))
             )
-            st.success("本週小亮點已儲存")
-            st.rerun()
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
+            st.success("已儲存本週回顧 ♡")
+    
+        st.markdown('</div>', unsafe_allow_html=True)
+    
         st.markdown("<div style='height:14px;'></div>", unsafe_allow_html=True)
-
-        week_data = get_or_create_gratitude_week(grat_year, grat_week)
-
-        st.markdown(
-            """
-            <div class="grat-side-card">
-                <div class="grat-side-title">自由書寫區 Free Notes</div>
-                <div class="grat-side-sub">想說的話、心情、靈感放這裡吧。</div>
-            """,
-            unsafe_allow_html=True,
-        )
-
+    
+        # 第二張卡
+        st.markdown('<div class="memo-card">', unsafe_allow_html=True)
+        st.markdown('<div class="memo-title">自由書寫區 Free Notes</div>', unsafe_allow_html=True)
+        st.markdown('<div class="memo-subtitle">想說的話、心情、靈感放這裡吧。</div>', unsafe_allow_html=True)
+    
         free_note = st.text_area(
-            "free_note",
-            value=week_data.get("free_note", ""),
-            placeholder="寫下這週想留下來的話",
-            height=220,
-            key=f"free_note_{grat_year}_{grat_week}",
-            label_visibility="collapsed"
+            "自由書寫",
+            value=free_note_default,
+            placeholder="今天想寫下什麼呢？",
+            height=260,
+            label_visibility="collapsed",
+            key="free_note_input"
         )
-
-        if st.button("儲存自由書寫", key=f"save_free_note_{grat_year}_{grat_week}", use_container_width=True):
+    
+        if st.button("儲存自由書寫", key="save_free_note_btn"):
             update_gratitude_week(
                 grat_year,
                 grat_week,
-                week_data.get("weekly_highlight", ""),
+                safe_str(st.session_state.get("weekly_highlight_input", weekly_highlight_default)),
                 free_note
             )
-            st.success("自由書寫已儲存")
-            st.rerun()
-
-        st.markdown("</div>", unsafe_allow_html=True)
+            st.success("已儲存自由書寫 ♡")
+    
+        st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown(
         """
