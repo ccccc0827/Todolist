@@ -2102,7 +2102,7 @@ with tab6:
             weekday = weekday_names[i]
             day_data = get_or_create_gratitude_day(grat_year, grat_week, day_date, weekday)
             
-            with top_row[i]
+            with top_row[i]:
                 with st.container(border=True):
                     st.markdown(
                         f"""
