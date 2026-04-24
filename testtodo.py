@@ -1270,12 +1270,12 @@ def render_calendar_html(year: int, month: int, today_value: date, selected_week
             cls += " day-today"
         cells.append(f'<div class="{cls}">{d.day}</div>')
     return f"""
-        <div class="shell-card">
-        <div class="card-title calendar-title">📅 月曆</div>
-        <div class="card-body">
-            <div style="text-align:center; font-size:1rem; font-weight:700; margin-bottom:8px;">{year} 年 {month} 月</div>
-            <div class="calendar-grid">{''.join(cells)}</div>
-            <div style="margin-top:12px; background:{CREAM}; border-radius:12px; padding:10px 12px; color:#6D6466; font-size:0.8rem;">
+    <div class="shell-card"
+    <div class="card-title calendar-title">📅 月曆</div>
+    <div class="card-body">
+    <div style="text-align:center; font-size:1rem; font-weight:700; margin-bottom:8px;">{year} 年 {month} 月</div>
+    <div class="calendar-grid">{''.join(cells)}</div>
+    <div style="margin-top:12px; background:{CREAM}; border-radius:12px; padding:10px 12px; color:#6D6466; font-size:0.8rem;">
                 ⭐ {selected_week}: {monday.month}/{monday.day} ({monday.strftime('%a')}) ~ {sunday.month}/{sunday.day} ({sunday.strftime('%a')})
             </div>
     </div>
