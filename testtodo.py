@@ -837,11 +837,20 @@ def update_gratitude_day(
     if not df.empty:
         df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
 
+    for col in ["gratitude_1", "gratitude_2", "gratitude_3", "mood", "week", "weekday", "date"]:
+        if col in df.columns:
+            df[col] = df[col].astype("object")
+
     mask = (
         (df["iso_year"] == iso_year)
         & (df["week"] == week)
         & (df["weekday"] == weekday)
     ) if not df.empty else pd.Series(dtype=bool)
+
+    clean_g1 = "" if pd.isna(gratitude_1) else str(gratitude_1).strip()
+    clean_g2 = "" if pd.isna(gratitude_2) else str(gratitude_2).strip()
+    clean_g3 = "" if pd.isna(gratitude_3) else str(gratitude_3).strip()
+    clean_mood = "" if pd.isna(mood) else str(mood).strip()
 
     if df.empty or not mask.any():
         new_row = pd.DataFrame([{
@@ -849,18 +858,18 @@ def update_gratitude_day(
             "week": week,
             "date": day_date,
             "weekday": weekday,
-            "gratitude_1": gratitude_1.strip(),
-            "gratitude_2": gratitude_2.strip(),
-            "gratitude_3": gratitude_3.strip(),
-            "mood": mood.strip()
+            "gratitude_1": clean_g1,
+            "gratitude_2": clean_g2,
+            "gratitude_3": clean_g3,
+            "mood": clean_mood
         }])
         df = pd.concat([df, new_row], ignore_index=True)
     else:
         df.loc[mask, "date"] = day_date
-        df.loc[mask, "gratitude_1"] = gratitude_1.strip()
-        df.loc[mask, "gratitude_2"] = gratitude_2.strip()
-        df.loc[mask, "gratitude_3"] = gratitude_3.strip()
-        df.loc[mask, "mood"] = mood.strip()
+        df.loc[mask, "gratitude_1"] = clean_g1
+        df.loc[mask, "gratitude_2"] = clean_g2
+        df.loc[mask, "gratitude_3"] = clean_g3
+        df.loc[mask, "mood"] = clean_mood
 
     save_gratitude_daily_data(df, path)
 
