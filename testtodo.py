@@ -58,6 +58,8 @@ READING_CSV = "reading_list.csv"
 SLEEP_CSV = "sleep_log.csv"
 HABIT_CSV = "habit_tracker.csv"
 HABIT_LOG_CSV = "habit_log.csv"
+GRATITUDE_DAILY_CSV = "gratitude_daily.csv"
+GRATITUDE_WEEKLY_CSV = "gratitude_weekly.csv"
 
 APP_TZ = ZoneInfo("Asia/Taipei")
 
@@ -412,6 +414,118 @@ div[data-testid="stButton"] > button {{
     padding: 0 4px;
     font-size: 0.4rem;
 }}
+/* =========================
+   Gratitude Journal
+========================= */
+.grat-hero {{
+    background: #FCEFF2;
+    border: 1px solid #F2DDE3;
+    border-radius: 22px;
+    padding: 24px 28px;
+    margin-bottom: 18px;
+}}
+.grat-hero-title {{
+    font-size: 2.1rem;
+    font-weight: 800;
+    color: #5B474D;
+    margin-bottom: 4px;
+}}
+.grat-hero-sub {{
+    font-size: 1.05rem;
+    color: #C06F85;
+    font-weight: 600;
+    margin-bottom: 8px;
+}}
+.grat-hero-note {{
+    font-size: 0.82rem;
+    color: #7A686E;
+}}
+.grat-week-box {{
+    background: #FFF8FA;
+    border: 1px solid #EDD7DE;
+    border-radius: 18px;
+    padding: 14px 18px;
+    text-align: center;
+}}
+.grat-section-title {{
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #6A5057;
+    margin: 8px 0 12px 0;
+}}
+.grat-day-card {{
+    background: #FFFFFF;
+    border: 1px solid #F0DDE3;
+    border-radius: 20px;
+    padding: 16px 16px 12px 16px;
+    min-height: 290px;
+}}
+.grat-day-date {{
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    background: #F9E1E7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #7D5F67;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}}
+.grat-day-name {{
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #5A474C;
+    margin-bottom: 10px;
+}}
+.grat-day-label {{
+    font-size: 0.75rem;
+    color: #7C6970;
+    margin-bottom: 10px;
+}}
+.grat-line {{
+    border-bottom: 1px dashed #E8D7DC;
+    padding: 6px 0;
+    font-size: 0.78rem;
+    color: #5D4E53;
+}}
+.grat-mood-pill {{
+    display: inline-block;
+    background: #FCECEE;
+    color: #C06F85;
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    margin-top: 12px;
+}}
+.grat-side-card {{
+    background: #FFFFFF;
+    border: 1px solid #F0DDE3;
+    border-radius: 22px;
+    padding: 18px 18px 16px 18px;
+}}
+.grat-side-title {{
+    font-size: 0.98rem;
+    font-weight: 800;
+    color: #5E4A50;
+    margin-bottom: 6px;
+}}
+.grat-side-sub {{
+    font-size: 0.82rem;
+    color: #7B666C;
+    margin-bottom: 10px;
+}}
+.grat-footer {{
+    background: #FCEFF2;
+    border: 1px solid #F2DDE3;
+    border-radius: 18px;
+    padding: 14px 18px;
+    color: #8C6D75;
+    font-size: 0.82rem;
+    margin-top: 16px;
+}}
     </style>
     """,
     unsafe_allow_html=True,
@@ -624,7 +738,182 @@ def save_habit_data(df: pd.DataFrame, path: str = HABIT_CSV):
     df.to_csv(path, index=False)
     st.cache_data.clear()
 
+# =========================
+# Gratitude data helpers
+# =========================
+def create_gratitude_daily_csv(path: str):
+    sample = pd.DataFrame(
+        columns=[
+            "iso_year", "week", "date", "weekday",
+            "gratitude_1", "gratitude_2", "gratitude_3", "mood"
+        ]
+    )
+    sample.to_csv(path, index=False)
 
+
+def create_gratitude_weekly_csv(path: str):
+    sample = pd.DataFrame(
+        columns=[
+            "iso_year", "week", "weekly_highlight", "free_note"
+        ]
+    )
+    sample.to_csv(path, index=False)
+
+
+@st.cache_data
+def load_gratitude_daily_data(path: str = GRATITUDE_DAILY_CSV) -> pd.DataFrame:
+    if not Path(path).exists():
+        create_gratitude_daily_csv(path)
+    df = pd.read_csv(path)
+    if not df.empty:
+        df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
+    return df
+
+
+@st.cache_data
+def load_gratitude_weekly_data(path: str = GRATITUDE_WEEKLY_CSV) -> pd.DataFrame:
+    if not Path(path).exists():
+        create_gratitude_weekly_csv(path)
+    return pd.read_csv(path)
+
+
+def save_gratitude_daily_data(df: pd.DataFrame, path: str = GRATITUDE_DAILY_CSV):
+    df.to_csv(path, index=False)
+    st.cache_data.clear()
+
+
+def save_gratitude_weekly_data(df: pd.DataFrame, path: str = GRATITUDE_WEEKLY_CSV):
+    df.to_csv(path, index=False)
+    st.cache_data.clear()
+
+
+def get_or_create_gratitude_day(
+    iso_year: int,
+    week: str,
+    day_date: date,
+    weekday: str,
+    path: str = GRATITUDE_DAILY_CSV
+):
+    df = load_gratitude_daily_data(path).copy()
+
+    mask = (
+        (df["iso_year"] == iso_year)
+        & (df["week"] == week)
+        & (df["weekday"] == weekday)
+    ) if not df.empty else pd.Series(dtype=bool)
+
+    if df.empty or not mask.any():
+        new_row = pd.DataFrame([{
+            "iso_year": iso_year,
+            "week": week,
+            "date": day_date,
+            "weekday": weekday,
+            "gratitude_1": "",
+            "gratitude_2": "",
+            "gratitude_3": "",
+            "mood": ""
+        }])
+        df = pd.concat([df, new_row], ignore_index=True)
+        save_gratitude_daily_data(df, path)
+        return new_row.iloc[0].to_dict()
+
+    row = df.loc[mask].iloc[0].to_dict()
+    return row
+
+
+def update_gratitude_day(
+    iso_year: int,
+    week: str,
+    day_date: date,
+    weekday: str,
+    gratitude_1: str,
+    gratitude_2: str,
+    gratitude_3: str,
+    mood: str,
+    path: str = GRATITUDE_DAILY_CSV
+):
+    df = load_gratitude_daily_data(path).copy()
+
+    if not df.empty:
+        df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
+
+    mask = (
+        (df["iso_year"] == iso_year)
+        & (df["week"] == week)
+        & (df["weekday"] == weekday)
+    ) if not df.empty else pd.Series(dtype=bool)
+
+    if df.empty or not mask.any():
+        new_row = pd.DataFrame([{
+            "iso_year": iso_year,
+            "week": week,
+            "date": day_date,
+            "weekday": weekday,
+            "gratitude_1": gratitude_1.strip(),
+            "gratitude_2": gratitude_2.strip(),
+            "gratitude_3": gratitude_3.strip(),
+            "mood": mood.strip()
+        }])
+        df = pd.concat([df, new_row], ignore_index=True)
+    else:
+        df.loc[mask, "date"] = day_date
+        df.loc[mask, "gratitude_1"] = gratitude_1.strip()
+        df.loc[mask, "gratitude_2"] = gratitude_2.strip()
+        df.loc[mask, "gratitude_3"] = gratitude_3.strip()
+        df.loc[mask, "mood"] = mood.strip()
+
+    save_gratitude_daily_data(df, path)
+
+
+def get_or_create_gratitude_week(iso_year: int, week: str, path: str = GRATITUDE_WEEKLY_CSV):
+    df = load_gratitude_weekly_data(path).copy()
+
+    mask = (
+        (df["iso_year"] == iso_year)
+        & (df["week"] == week)
+    ) if not df.empty else pd.Series(dtype=bool)
+
+    if df.empty or not mask.any():
+        new_row = pd.DataFrame([{
+            "iso_year": iso_year,
+            "week": week,
+            "weekly_highlight": "",
+            "free_note": ""
+        }])
+        df = pd.concat([df, new_row], ignore_index=True)
+        save_gratitude_weekly_data(df, path)
+        return new_row.iloc[0].to_dict()
+
+    return df.loc[mask].iloc[0].to_dict()
+
+
+def update_gratitude_week(
+    iso_year: int,
+    week: str,
+    weekly_highlight: str,
+    free_note: str,
+    path: str = GRATITUDE_WEEKLY_CSV
+):
+    df = load_gratitude_weekly_data(path).copy()
+
+    mask = (
+        (df["iso_year"] == iso_year)
+        & (df["week"] == week)
+    ) if not df.empty else pd.Series(dtype=bool)
+
+    if df.empty or not mask.any():
+        new_row = pd.DataFrame([{
+            "iso_year": iso_year,
+            "week": week,
+            "weekly_highlight": weekly_highlight.strip(),
+            "free_note": free_note.strip()
+        }])
+        df = pd.concat([df, new_row], ignore_index=True)
+    else:
+        df.loc[mask, "weekly_highlight"] = weekly_highlight.strip()
+        df.loc[mask, "free_note"] = free_note.strip()
+
+    save_gratitude_weekly_data(df, path)
 # =========================
 # Task functions
 # =========================
@@ -1106,7 +1395,8 @@ df = normalize_task_dates(load_data())
 reading_df = load_reading_data()
 sleep_df = load_sleep_data()
 habit_df = load_habit_data()
-
+gratitude_daily_df = load_gratitude_daily_data()
+gratitude_weekly_df = load_gratitude_weekly_data()
 
 # =========================
 # Sidebar
@@ -1169,12 +1459,9 @@ focus_month = monday.month
 # =========================
 # Tabs
 # =========================
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "Dashboard",
-    "Task Manager",
-    "Weekly Planner",
-    "Reading List",
-    "Sleep & Habits",
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "Dashboard", "Task Manager", "Weekly Planner",
+    "Reading List", "Sleep & Habits", "Gratitude Journal"
 ])
 
 
@@ -1699,3 +1986,238 @@ with tab5:
                                             st.rerun()
                                     else:
                                         st.markdown("&nbsp;", unsafe_allow_html=True)
+
+# =========================
+# Gratitude Journal
+# =========================
+with tab6:
+    grat_year = st.session_state.selected_year
+    grat_week = st.session_state.selected_week
+    grat_monday, grat_sunday = get_week_range(grat_year, grat_week)
+    grat_week_dates = [grat_monday + timedelta(days=i) for i in range(7)]
+
+    # Hero
+    hero_left, hero_right = st.columns([3.2, 1.25], gap="medium")
+
+    with hero_left:
+        st.markdown(
+            """
+            <div class="grat-hero">
+                <div class="grat-hero-title">今日小亮點 ♡</div>
+                <div class="grat-hero-sub">Gratitude Journal</div>
+                <div class="grat-hero-note">感謝生活中的小確幸，讓每一天都值得被記錄。</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    with hero_right:
+        st.markdown(
+            f"""
+            <div class="grat-week-box">
+                <div style="font-size:1rem; font-weight:700; color:#6A555B; margin-bottom:8px;">
+                    {grat_year} / {calendar.month_abbr[grat_monday.month]} ｜ {grat_week}
+                </div>
+                <div style="font-size:0.88rem; color:#7A676D;">
+                    {grat_monday.month}/{grat_monday.day} ({grat_monday.strftime("%a")}) - {grat_sunday.month}/{grat_sunday.day} ({grat_sunday.strftime("%a")})
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    st.markdown('<div class="grat-section-title">✨ 本週感謝清單</div>', unsafe_allow_html=True)
+
+    main_col, side_col = st.columns([3.15, 1.25], gap="medium")
+
+    with main_col:
+        top_row = st.columns(4, gap="small")
+        bottom_row = st.columns(3, gap="small")
+
+        weekday_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+        for i in range(4):
+            day_date = grat_week_dates[i]
+            weekday = weekday_names[i]
+            day_data = get_or_create_gratitude_day(grat_year, grat_week, day_date, weekday)
+
+            with top_row[i]:
+                st.markdown(
+                    f"""
+                    <div class="grat-day-card">
+                        <div class="grat-day-date">{day_date.day}</div>
+                        <div class="grat-day-name">{weekday}.</div>
+                        <div class="grat-day-label">今日感謝的三件事</div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+                g1 = st.text_input(
+                    "grat1",
+                    value=day_data.get("gratitude_1", ""),
+                    placeholder="第一件感謝的小事",
+                    key=f"grat_1_{grat_year}_{grat_week}_{weekday}",
+                    label_visibility="collapsed"
+                )
+                g2 = st.text_input(
+                    "grat2",
+                    value=day_data.get("gratitude_2", ""),
+                    placeholder="第二件感謝的小事",
+                    key=f"grat_2_{grat_year}_{grat_week}_{weekday}",
+                    label_visibility="collapsed"
+                )
+                g3 = st.text_input(
+                    "grat3",
+                    value=day_data.get("gratitude_3", ""),
+                    placeholder="第三件感謝的小事",
+                    key=f"grat_3_{grat_year}_{grat_week}_{weekday}",
+                    label_visibility="collapsed"
+                )
+                mood = st.text_input(
+                    "mood",
+                    value=day_data.get("mood", ""),
+                    placeholder="Mood / 心情",
+                    key=f"grat_mood_{grat_year}_{grat_week}_{weekday}",
+                    label_visibility="collapsed"
+                )
+
+                if st.button("儲存", key=f"save_grat_{grat_year}_{grat_week}_{weekday}", use_container_width=True):
+                    update_gratitude_day(
+                        grat_year, grat_week, day_date, weekday,
+                        g1, g2, g3, mood
+                    )
+                    st.success(f"{weekday} 已儲存")
+                    st.rerun()
+
+                st.markdown("</div>", unsafe_allow_html=True)
+
+        for i in range(3):
+            day_date = grat_week_dates[i + 4]
+            weekday = weekday_names[i + 4]
+            day_data = get_or_create_gratitude_day(grat_year, grat_week, day_date, weekday)
+
+            with bottom_row[i]:
+                st.markdown(
+                    f"""
+                    <div class="grat-day-card">
+                        <div class="grat-day-date">{day_date.day}</div>
+                        <div class="grat-day-name">{weekday}.</div>
+                        <div class="grat-day-label">今日感謝的三件事</div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+                g1 = st.text_input(
+                    "grat1",
+                    value=day_data.get("gratitude_1", ""),
+                    placeholder="第一件感謝的小事",
+                    key=f"grat_1_{grat_year}_{grat_week}_{weekday}",
+                    label_visibility="collapsed"
+                )
+                g2 = st.text_input(
+                    "grat2",
+                    value=day_data.get("gratitude_2", ""),
+                    placeholder="第二件感謝的小事",
+                    key=f"grat_2_{grat_year}_{grat_week}_{weekday}",
+                    label_visibility="collapsed"
+                )
+                g3 = st.text_input(
+                    "grat3",
+                    value=day_data.get("gratitude_3", ""),
+                    placeholder="第三件感謝的小事",
+                    key=f"grat_3_{grat_year}_{grat_week}_{weekday}",
+                    label_visibility="collapsed"
+                )
+                mood = st.text_input(
+                    "mood",
+                    value=day_data.get("mood", ""),
+                    placeholder="Mood / 心情",
+                    key=f"grat_mood_{grat_year}_{grat_week}_{weekday}",
+                    label_visibility="collapsed"
+                )
+
+                if st.button("儲存", key=f"save_grat_{grat_year}_{grat_week}_{weekday}", use_container_width=True):
+                    update_gratitude_day(
+                        grat_year, grat_week, day_date, weekday,
+                        g1, g2, g3, mood
+                    )
+                    st.success(f"{weekday} 已儲存")
+                    st.rerun()
+
+                st.markdown("</div>", unsafe_allow_html=True)
+
+    with side_col:
+        week_data = get_or_create_gratitude_week(grat_year, grat_week)
+
+        st.markdown(
+            """
+            <div class="grat-side-card">
+                <div class="grat-side-title">This Week’s Little Joys ✨</div>
+                <div class="grat-side-sub">本週小亮點回顧</div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        weekly_highlight = st.text_area(
+            "weekly_highlight",
+            value=week_data.get("weekly_highlight", ""),
+            placeholder="這週有什麼讓妳會心一笑的事呢？",
+            height=220,
+            key=f"weekly_highlight_{grat_year}_{grat_week}",
+            label_visibility="collapsed"
+        )
+
+        if st.button("儲存本週回顧", key=f"save_week_highlight_{grat_year}_{grat_week}", use_container_width=True):
+            update_gratitude_week(
+                grat_year,
+                grat_week,
+                weekly_highlight,
+                week_data.get("free_note", "")
+            )
+            st.success("本週小亮點已儲存")
+            st.rerun()
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        st.markdown("<div style='height:14px;'></div>", unsafe_allow_html=True)
+
+        week_data = get_or_create_gratitude_week(grat_year, grat_week)
+
+        st.markdown(
+            """
+            <div class="grat-side-card">
+                <div class="grat-side-title">自由書寫區 Free Notes</div>
+                <div class="grat-side-sub">想說的話、心情、靈感放這裡吧。</div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        free_note = st.text_area(
+            "free_note",
+            value=week_data.get("free_note", ""),
+            placeholder="寫下這週想留下來的話",
+            height=220,
+            key=f"free_note_{grat_year}_{grat_week}",
+            label_visibility="collapsed"
+        )
+
+        if st.button("儲存自由書寫", key=f"save_free_note_{grat_year}_{grat_week}", use_container_width=True):
+            update_gratitude_week(
+                grat_year,
+                grat_week,
+                week_data.get("weekly_highlight", ""),
+                free_note
+            )
+            st.success("自由書寫已儲存")
+            st.rerun()
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown(
+        """
+        <div class="grat-footer">
+            ✨ 感謝讓我們看見美好，而美好讓生活更有力量。 Thank you for being here. You’re doing amazing.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
