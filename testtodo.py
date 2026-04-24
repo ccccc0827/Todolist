@@ -606,7 +606,6 @@ div[data-testid="stButton"] > button {{
 )
 
 
-""", unsafe_allow_html=True)
 
 def status_pill_html(status: str) -> str:
     bg_map = {
