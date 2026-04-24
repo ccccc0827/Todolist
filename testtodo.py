@@ -2373,7 +2373,7 @@ with tab6:
                 placeholder="這週有什麼讓妳會心一笑的事呢？",
                 height=240,
                 label_visibility="collapsed",
-                key="weekly_highlight_input"
+                key=f"weekly_highlight_input_{grat_year}_{grat_week}"
             )
     
             if st.button("儲存本週回顧", key="save_weekly_highlight_btn", use_container_width=True):
@@ -2404,7 +2404,7 @@ with tab6:
                 placeholder="今天想寫下什麼呢？",
                 height=240,
                 label_visibility="collapsed",
-                key="free_note_input"
+                key=f"free_note_input_{grat_year}_{grat_week}"
             )
     
             if st.button("儲存自由書寫", key="save_free_note_btn", use_container_width=True):
