@@ -2012,20 +2012,81 @@ with tab6:
         )
 
     with hero_right:
+        st.markdown('<div class="grat-week-box">', unsafe_allow_html=True)
+    
+        nav_left, nav_mid, nav_right = st.columns([0.22, 0.56, 0.22])
+    
+        with nav_left:
+            if st.button("‹", key="grat_prev_week", use_container_width=True):
+                current_week_num = int(st.session_state.selected_week.replace("W", ""))
+                if current_week_num > 1:
+                    st.session_state.selected_week = f"W{current_week_num - 1}"
+                else:
+                    st.session_state.selected_year -= 1
+                    last_week = date(st.session_state.selected_year, 12, 28).isocalendar().week
+                    st.session_state.selected_week = f"W{last_week}"
+                st.rerun()
+    
+        with nav_mid:
+            grat_year = st.selectbox(
+                "年份",
+                get_year_options(df),
+                index=get_year_options(df).index(st.session_state.selected_year),
+                key="grat_year_selector",
+                label_visibility="collapsed"
+            )
+    
+            grat_week_options = get_week_options(grat_year)
+    
+            if st.session_state.selected_week not in grat_week_options:
+                st.session_state.selected_week = grat_week_options[0]
+    
+            grat_week = st.selectbox(
+                "週次",
+                grat_week_options,
+                index=grat_week_options.index(st.session_state.selected_week),
+                key="grat_week_selector",
+                label_visibility="collapsed"
+            )
+    
+            st.session_state.selected_year = grat_year
+            st.session_state.selected_week = grat_week
+    
+        with nav_right:
+            if st.button("›", key="grat_next_week", use_container_width=True):
+                current_week_num = int(st.session_state.selected_week.replace("W", ""))
+                last_week = date(st.session_state.selected_year, 12, 28).isocalendar().week
+    
+                if current_week_num < last_week:
+                    st.session_state.selected_week = f"W{current_week_num + 1}"
+                else:
+                    st.session_state.selected_year += 1
+                    st.session_state.selected_week = "W1"
+                st.rerun()
+    
+        grat_year = st.session_state.selected_year
+        grat_week = st.session_state.selected_week
+        grat_monday, grat_sunday = get_week_range(grat_year, grat_week)
+    
         st.markdown(
             f"""
-            <div class="grat-week-box">
-                <div style="font-size:1rem; font-weight:700; color:#6A555B; margin-bottom:8px;">
+            <div style="text-align:center; margin-top:10px;">
+                <div style="font-size:1rem; font-weight:700; color:#6A555B; margin-bottom:6px;">
                     {grat_year} / {calendar.month_abbr[grat_monday.month]} ｜ {grat_week}
                 </div>
-                <div style="font-size:0.88rem; color:#7A676D;">
+                <div style="font-size:0.82rem; color:#7A676D;">
                     {grat_monday.month}/{grat_monday.day} ({grat_monday.strftime("%a")}) - {grat_sunday.month}/{grat_sunday.day} ({grat_sunday.strftime("%a")})
                 </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-
+    
+        grat_year = st.session_state.selected_year
+        grat_week = st.session_state.selected_week
+        grat_monday, grat_sunday = get_week_range(grat_year, grat_week)
+        grat_week_dates = [grat_monday + timedelta(days=i) for i in range(7)]
+        
     st.markdown('<div class="grat-section-title">✨ 本週感謝清單</div>', unsafe_allow_html=True)
 
     main_col, side_col = st.columns([3.15, 1.25], gap="medium")
