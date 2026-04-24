@@ -526,40 +526,42 @@ div[data-testid="stButton"] > button {{
     font-size: 0.82rem;
     margin-top: 16px;
 }}
-/* Gratitude 手帳底線輸入框 */
-.gratitude-card div[data-testid="stTextArea"] textarea {{
-    background-color: transparent !important;
-    border: none !important;
-    border-bottom: 1px dashed #E8C8D0 !important;
-    border-radius: 0 !important;
+/* Gratitude 手帳顯示版 */
+.grat-line-view {{
+    min-height: 42px;
+    padding: 7px 2px 4px 2px;
+    border-bottom: 1px dashed #E8AEBB;
+    color: #4F4447;
+    font-size: 0.92rem;
+    line-height: 1.55;
+}}
+
+.grat-line-view.empty {{
+    color: #AFA4A8;
+}}
+
+.grat-heart-prefix {{
+    color: #D98B9D;
+    margin-right: 8px;
+}}
+
+.grat-edit-area div[data-testid="stTextArea"] textarea {{
+    background-color: #FFFDFB !important;
+    border: 1px dashed #E8AEBB !important;
+    border-radius: 12px !important;
     box-shadow: none !important;
-    padding: 4px 2px !important;
-    min-height: 42px !important;
     font-size: 0.88rem !important;
     color: #5A474C !important;
 }}
 
-.gratitude-card [data-baseweb="textarea"] {{
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-}}
-
-.gratitude-card div[data-testid="stTextArea"] textarea:focus {{
-    border-bottom: 1.5px solid #D99AAA !important;
-    box-shadow: none !important;
-    outline: none !important;
-}}
-
-/* Gratitude 心心按鈕 */
 .gratitude-card div[data-testid="stButton"] button {{
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     color: #C98294 !important;
-    font-size: 1.15rem !important;
+    font-size: 1.05rem !important;
     padding: 0 !important;
-    min-height: 26px !important;
+    min-height: 24px !important;
 }}
 
 .gratitude-card div[data-testid="stButton"] button:hover {{
@@ -2062,9 +2064,9 @@ with tab6:
 
     with hero_right:
         st.markdown('<div class="grat-week-box">', unsafe_allow_html=True)
-    
+
         nav_left, nav_mid, nav_right = st.columns([0.22, 0.56, 0.22])
-    
+
         with nav_left:
             if st.button("‹", key="grat_prev_week", use_container_width=True):
                 current_week_num = int(st.session_state.selected_week.replace("W", ""))
@@ -2075,7 +2077,7 @@ with tab6:
                     last_week = date(st.session_state.selected_year, 12, 28).isocalendar().week
                     st.session_state.selected_week = f"W{last_week}"
                 st.rerun()
-    
+
         with nav_mid:
             grat_year = st.selectbox(
                 "年份",
@@ -2084,12 +2086,12 @@ with tab6:
                 key="grat_year_selector",
                 label_visibility="collapsed"
             )
-    
+
             grat_week_options = get_week_options(grat_year)
-    
+
             if st.session_state.selected_week not in grat_week_options:
                 st.session_state.selected_week = grat_week_options[0]
-    
+
             grat_week = st.selectbox(
                 "週次",
                 grat_week_options,
@@ -2097,26 +2099,27 @@ with tab6:
                 key="grat_week_selector",
                 label_visibility="collapsed"
             )
-    
+
             st.session_state.selected_year = grat_year
             st.session_state.selected_week = grat_week
-    
+
         with nav_right:
             if st.button("›", key="grat_next_week", use_container_width=True):
                 current_week_num = int(st.session_state.selected_week.replace("W", ""))
                 last_week = date(st.session_state.selected_year, 12, 28).isocalendar().week
-    
+
                 if current_week_num < last_week:
                     st.session_state.selected_week = f"W{current_week_num + 1}"
                 else:
                     st.session_state.selected_year += 1
                     st.session_state.selected_week = "W1"
                 st.rerun()
-    
+
         grat_year = st.session_state.selected_year
         grat_week = st.session_state.selected_week
         grat_monday, grat_sunday = get_week_range(grat_year, grat_week)
-    
+        grat_week_dates = [grat_monday + timedelta(days=i) for i in range(7)]
+
         st.markdown(
             f"""
             <div style="text-align:center; margin-top:10px;">
@@ -2130,15 +2133,159 @@ with tab6:
             """,
             unsafe_allow_html=True,
         )
-    
-        grat_year = st.session_state.selected_year
-        grat_week = st.session_state.selected_week
-        grat_monday, grat_sunday = get_week_range(grat_year, grat_week)
-        grat_week_dates = [grat_monday + timedelta(days=i) for i in range(7)]
-        
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
     st.markdown('<div class="grat-section-title">✨ 本週感謝清單</div>', unsafe_allow_html=True)
 
     main_col, side_col = st.columns([3.15, 1.25], gap="medium")
+
+    def render_grat_day_card(day_date, weekday, grat_year, grat_week):
+        day_data = get_or_create_gratitude_day(grat_year, grat_week, day_date, weekday)
+
+        st.markdown('<div class="gratitude-card">', unsafe_allow_html=True)
+
+        with st.container(border=True):
+            st.markdown(
+                f"""
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                    <div style="
+                        width:42px; height:42px; border-radius:999px;
+                        background:#F7DDE6;
+                        display:flex; align-items:center; justify-content:center;
+                        font-weight:700; color:#6A555B;
+                    ">{day_date.day}</div>
+                    <div>
+                        <div style="font-size:1rem; font-weight:800; color:#4F4447;">{weekday}.</div>
+                        <div style="font-size:0.72rem; color:#B27684;">今日感謝的三件事 ♡</div>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            edit_key = f"editing_grat_{grat_year}_{grat_week}_{weekday}"
+
+            v1 = "" if pd.isna(day_data.get("gratitude_1", "")) else str(day_data.get("gratitude_1", ""))
+            v2 = "" if pd.isna(day_data.get("gratitude_2", "")) else str(day_data.get("gratitude_2", ""))
+            v3 = "" if pd.isna(day_data.get("gratitude_3", "")) else str(day_data.get("gratitude_3", ""))
+
+            if edit_key not in st.session_state:
+                st.session_state[edit_key] = False
+
+            if not st.session_state[edit_key]:
+                for text, placeholder in [
+                    (v1, "第一件感謝的小事"),
+                    (v2, "第二件感謝的小事"),
+                    (v3, "第三件感謝的小事"),
+                ]:
+                    display_text = text.strip() if text.strip() else placeholder
+                    empty_class = " empty" if not text.strip() else ""
+                    st.markdown(
+                        f"""
+                        <div class="grat-line-view{empty_class}">
+                            <span class="grat-heart-prefix">♡</span>{display_text}
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+
+                if st.button(
+                    "編輯 ♡",
+                    key=f"edit_grat_{grat_year}_{grat_week}_{weekday}",
+                    use_container_width=True
+                ):
+                    st.session_state[edit_key] = True
+                    st.rerun()
+
+            else:
+                st.markdown('<div class="grat-edit-area">', unsafe_allow_html=True)
+
+                g1 = st.text_area(
+                    "第一件感謝的小事",
+                    value=v1,
+                    placeholder="♡ 第一件感謝的小事",
+                    height=60,
+                    key=f"grat_1_{grat_year}_{grat_week}_{weekday}",
+                    label_visibility="collapsed",
+                )
+
+                g2 = st.text_area(
+                    "第二件感謝的小事",
+                    value=v2,
+                    placeholder="♡ 第二件感謝的小事",
+                    height=60,
+                    key=f"grat_2_{grat_year}_{grat_week}_{weekday}",
+                    label_visibility="collapsed",
+                )
+
+                g3 = st.text_area(
+                    "第三件感謝的小事",
+                    value=v3,
+                    placeholder="♡ 第三件感謝的小事",
+                    height=60,
+                    key=f"grat_3_{grat_year}_{grat_week}_{weekday}",
+                    label_visibility="collapsed",
+                )
+
+                st.markdown("</div>", unsafe_allow_html=True)
+
+                save_col, cancel_col = st.columns(2)
+
+                if save_col.button(
+                    "儲存 ♡",
+                    key=f"save_grat_{grat_year}_{grat_week}_{weekday}",
+                    use_container_width=True
+                ):
+                    update_gratitude_day(
+                        grat_year, grat_week, day_date, weekday,
+                        g1, g2, g3,
+                        str(st.session_state.get(f"mood_score_{grat_year}_{grat_week}_{weekday}", 0))
+                    )
+                    st.session_state[edit_key] = False
+                    st.success(f"{weekday} 已儲存")
+                    st.rerun()
+
+                if cancel_col.button(
+                    "取消",
+                    key=f"cancel_grat_{grat_year}_{grat_week}_{weekday}",
+                    use_container_width=True
+                ):
+                    st.session_state[edit_key] = False
+                    st.rerun()
+
+            mood_key = f"mood_score_{grat_year}_{grat_week}_{weekday}"
+            mood_value = day_data.get("mood", "")
+            default_mood = int(mood_value) if str(mood_value).isdigit() else 0
+
+            if mood_key not in st.session_state:
+                st.session_state[mood_key] = default_mood
+
+            st.markdown("心情：", unsafe_allow_html=True)
+            mood_cols = st.columns(5, gap="small")
+
+            for heart_i in range(1, 6):
+                with mood_cols[heart_i - 1]:
+                    heart_label = "♥" if heart_i <= st.session_state[mood_key] else "♡"
+                    if st.button(
+                        heart_label,
+                        key=f"mood_btn_{heart_i}_{grat_year}_{grat_week}_{weekday}",
+                        use_container_width=True
+                    ):
+                        st.session_state[mood_key] = heart_i
+                        update_gratitude_day(
+                            grat_year,
+                            grat_week,
+                            day_date,
+                            weekday,
+                            v1,
+                            v2,
+                            v3,
+                            str(heart_i)
+                        )
+                        st.rerun()
+
+        st.markdown('</div>', unsafe_allow_html=True)
 
     with main_col:
         top_row = st.columns(4, gap="small")
@@ -2149,172 +2296,15 @@ with tab6:
         for i in range(4):
             day_date = grat_week_dates[i]
             weekday = weekday_names[i]
-            day_data = get_or_create_gratitude_day(grat_year, grat_week, day_date, weekday)
-            
             with top_row[i]:
-                st.markdown('<div class="gratitude-card">', unsafe_allow_html=True)
-
-                with st.container(border=True):
-                    st.markdown(
-                        f"""
-                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                            <div style="
-                                width:42px; height:42px; border-radius:999px;
-                                background:#F7DDE6;
-                                display:flex; align-items:center; justify-content:center;
-                                font-weight:700; color:#6A555B;
-                            ">{day_date.day}</div>
-                            <div>
-                                <div style="font-size:1rem; font-weight:800; color:#4F4447;">{weekday}.</div>
-                                <div style="font-size:0.72rem; color:#B27684;">今日感謝的三件事 ♡</div>
-                            </div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-                
-                    g1 = st.text_area(
-                        "第一件感謝的小事",
-                        value="" if pd.isna(day_data.get("gratitude_1", "")) else day_data.get("gratitude_1", ""),
-                        placeholder="♡ 第一件感謝的小事",
-                        height=48,
-                        key=f"grat_1_{grat_year}_{grat_week}_{weekday}",
-                        label_visibility="collapsed",
-                    )
-                
-                    g2 = st.text_area(
-                        "第二件感謝的小事",
-                        value="" if pd.isna(day_data.get("gratitude_2", "")) else day_data.get("gratitude_2", ""),
-                        placeholder="♡ 第二件感謝的小事",
-                        height=48,
-                        key=f"grat_2_{grat_year}_{grat_week}_{weekday}",
-                        label_visibility="collapsed",
-                    )
-                
-                    g3 = st.text_area(
-                        "第三件感謝的小事",
-                        value="" if pd.isna(day_data.get("gratitude_3", "")) else day_data.get("gratitude_3", ""),
-                        placeholder="♡ 第三件感謝的小事",
-                        height=48,
-                        key=f"grat_3_{grat_year}_{grat_week}_{weekday}",
-                        label_visibility="collapsed",
-                    )
-                
-                    mood_key = f"mood_score_{grat_year}_{grat_week}_{weekday}"
-
-                    mood_value = day_data.get("mood", "")
-                    default_mood = int(mood_value) if str(mood_value).isdigit() else 0
-                    
-                    if mood_key not in st.session_state:
-                        st.session_state[mood_key] = default_mood
-                    
-                    st.markdown("心情：", unsafe_allow_html=True)
-                    
-                    mood_cols = st.columns(5, gap="small")
-                    
-                    for heart_i in range(1, 6):
-                        with mood_cols[heart_i - 1]:
-                            heart_label = "♥" if heart_i <= st.session_state[mood_key] else "♡"
-                    
-                            if st.button(
-                                heart_label,
-                                key=f"mood_btn_{heart_i}_{grat_year}_{grat_week}_{weekday}",
-                                use_container_width=True
-                            ):
-                                st.session_state[mood_key] = heart_i
-                                st.rerun()
-                    
-                    selected_mood = st.session_state[mood_key]
-                                    
-                    if st.button("儲存 ♡", key=f"save_grat_{grat_year}_{grat_week}_{weekday}", use_container_width=True):
-                        update_gratitude_day(
-                            grat_year, grat_week, day_date, weekday,
-                            g1, g2, g3, str(selected_mood)
-                        )
-                        st.success(f"{weekday} 已儲存")
-                        st.rerun()
-                
-                st.markdown('</div>', unsafe_allow_html=True)
+                render_grat_day_card(day_date, weekday, grat_year, grat_week)
 
         for i in range(3):
             day_date = grat_week_dates[i + 4]
             weekday = weekday_names[i + 4]
-            day_data = get_or_create_gratitude_day(grat_year, grat_week, day_date, weekday)
-
             with bottom_row[i]:
-                st.markdown('<div class="gratitude-card">', unsafe_allow_html=True)
+                render_grat_day_card(day_date, weekday, grat_year, grat_week)
 
-                with st.container(border=True):
-                    st.markdown(
-                        f"""
-                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                            <div style="
-                                width:42px; height:42px; border-radius:999px;
-                                background:#F7DDE6;
-                                display:flex; align-items:center; justify-content:center;
-                                font-weight:700; color:#6A555B;
-                            ">{day_date.day}</div>
-                            <div>
-                                <div style="font-size:1rem; font-weight:800; color:#4F4447;">{weekday}.</div>
-                                <div style="font-size:0.72rem; color:#B27684;">今日感謝的三件事 ♡</div>
-                            </div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-                
-                    g1 = st.text_area(
-                        "第一件感謝的小事",
-                        value="" if pd.isna(day_data.get("gratitude_1", "")) else day_data.get("gratitude_1", ""),
-                        placeholder="♡ 第一件感謝的小事",
-                        height=48,
-                        key=f"grat_1_{grat_year}_{grat_week}_{weekday}",
-                        label_visibility="collapsed",
-                    )
-                
-                    g2 = st.text_area(
-                        "第二件感謝的小事",
-                        value="" if pd.isna(day_data.get("gratitude_2", "")) else day_data.get("gratitude_2", ""),
-                        placeholder="♡ 第二件感謝的小事",
-                        height=48,
-                        key=f"grat_2_{grat_year}_{grat_week}_{weekday}",
-                        label_visibility="collapsed",
-                    )
-                
-                    g3 = st.text_area(
-                        "第三件感謝的小事",
-                        value="" if pd.isna(day_data.get("gratitude_3", "")) else day_data.get("gratitude_3", ""),
-                        placeholder="♡ 第三件感謝的小事",
-                        height=48,
-                        key=f"grat_3_{grat_year}_{grat_week}_{weekday}",
-                        label_visibility="collapsed",
-                    )
-                
-                    st.markdown("心情：", unsafe_allow_html=True)
-                    mood_cols = st.columns(5, gap="small")
-                    mood_value = day_data.get("mood", "")
-                    mood_score = int(mood_value) if str(mood_value).isdigit() else 0
-                
-                    selected_mood = mood_score
-                    for heart_i in range(1, 6):
-                        with mood_cols[heart_i - 1]:
-                            heart_label = "♥" if heart_i <= mood_score else "♡"
-                            if st.button(
-                                heart_label,
-                                key=f"mood_{heart_i}_{grat_year}_{grat_week}_{weekday}",
-                                use_container_width=True
-                            ):
-                                selected_mood = heart_i
-                
-                    if st.button("儲存 ♡", key=f"save_grat_{grat_year}_{grat_week}_{weekday}", use_container_width=True):
-                        update_gratitude_day(
-                            grat_year, grat_week, day_date, weekday,
-                            g1, g2, g3, str(selected_mood)
-                        )
-                        st.success(f"{weekday} 已儲存")
-                        st.rerun()
-                
-                st.markdown('</div>', unsafe_allow_html=True)
     with side_col:
         week_data = get_or_create_gratitude_week(grat_year, grat_week)
 
