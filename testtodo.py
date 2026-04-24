@@ -947,6 +947,13 @@ def update_gratitude_week(
 ):
     df = load_gratitude_weekly_data(path).copy()
 
+    for col in ["week", "weekly_highlight", "free_note"]:
+        if col in df.columns:
+            df[col] = df[col].astype("object")
+
+    clean_highlight = "" if pd.isna(weekly_highlight) else str(weekly_highlight).strip()
+    clean_note = "" if pd.isna(free_note) else str(free_note).strip()
+
     mask = (
         (df["iso_year"] == iso_year)
         & (df["week"] == week)
@@ -956,13 +963,13 @@ def update_gratitude_week(
         new_row = pd.DataFrame([{
             "iso_year": iso_year,
             "week": week,
-            "weekly_highlight": weekly_highlight.strip(),
-            "free_note": free_note.strip()
+            "weekly_highlight": clean_highlight,
+            "free_note": clean_note
         }])
         df = pd.concat([df, new_row], ignore_index=True)
     else:
-        df.loc[mask, "weekly_highlight"] = weekly_highlight.strip()
-        df.loc[mask, "free_note"] = free_note.strip()
+        df.loc[mask, "weekly_highlight"] = clean_highlight
+        df.loc[mask, "free_note"] = clean_note
 
     save_gratitude_weekly_data(df, path)
 # =========================
