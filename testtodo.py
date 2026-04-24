@@ -526,37 +526,45 @@ div[data-testid="stButton"] > button {{
     font-size: 0.82rem;
     margin-top: 16px;
 }}
-/* Gratitude 手帳感輸入框 */
-.gratitude-card textarea,
-.gratitude-card input {{
-    background: transparent !important;
+/* Gratitude 手帳底線輸入框 */
+.gratitude-card div[data-testid="stTextArea"] textarea {{
+    background-color: transparent !important;
     border: none !important;
     border-bottom: 1px dashed #E8C8D0 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
+    padding: 4px 2px !important;
+    min-height: 42px !important;
     font-size: 0.88rem !important;
     color: #5A474C !important;
-    padding: 4px 2px !important;
 }}
 
-.gratitude-card textarea:focus,
-.gratitude-card input:focus {{
-    outline: none !important;
-    border-bottom: 1.5px solid #D99AAA !important;
+.gratitude-card [data-baseweb="textarea"] {{
+    background-color: transparent !important;
+    border: none !important;
     box-shadow: none !important;
 }}
 
-.gratitude-card div[data-testid="stTextArea"],
-.gratitude-card div[data-testid="stTextInput"] {{
-    margin-bottom: 8px !important;
+.gratitude-card div[data-testid="stTextArea"] textarea:focus {{
+    border-bottom: 1.5px solid #D99AAA !important;
+    box-shadow: none !important;
+    outline: none !important;
 }}
 
-.gratitude-card button {{
-    background: #F7DDE6 !important;
+/* Gratitude 心心按鈕 */
+.gratitude-card div[data-testid="stButton"] button {{
+    background: transparent !important;
     border: none !important;
+    box-shadow: none !important;
+    color: #C98294 !important;
+    font-size: 1.15rem !important;
+    padding: 0 !important;
+    min-height: 26px !important;
+}}
+
+.gratitude-card div[data-testid="stButton"] button:hover {{
+    background: #FCEFF2 !important;
     border-radius: 999px !important;
-    color: #8A5F6A !important;
-    font-weight: 700 !important;
 }}
     </style>
     """,
@@ -2192,22 +2200,32 @@ with tab6:
                         label_visibility="collapsed",
                     )
                 
-                    st.markdown("心情：", unsafe_allow_html=True)
-                    mood_cols = st.columns(5, gap="small")
+                    mood_key = f"mood_score_{grat_year}_{grat_week}_{weekday}"
+
                     mood_value = day_data.get("mood", "")
-                    mood_score = int(mood_value) if str(mood_value).isdigit() else 0
-                
-                    selected_mood = mood_score
+                    default_mood = int(mood_value) if str(mood_value).isdigit() else 0
+                    
+                    if mood_key not in st.session_state:
+                        st.session_state[mood_key] = default_mood
+                    
+                    st.markdown("心情：", unsafe_allow_html=True)
+                    
+                    mood_cols = st.columns(5, gap="small")
+                    
                     for heart_i in range(1, 6):
                         with mood_cols[heart_i - 1]:
-                            heart_label = "♥" if heart_i <= mood_score else "♡"
+                            heart_label = "♥" if heart_i <= st.session_state[mood_key] else "♡"
+                    
                             if st.button(
                                 heart_label,
-                                key=f"mood_{heart_i}_{grat_year}_{grat_week}_{weekday}",
+                                key=f"mood_btn_{heart_i}_{grat_year}_{grat_week}_{weekday}",
                                 use_container_width=True
                             ):
-                                selected_mood = heart_i
-                
+                                st.session_state[mood_key] = heart_i
+                                st.rerun()
+                    
+                    selected_mood = st.session_state[mood_key]
+                                    
                     if st.button("儲存 ♡", key=f"save_grat_{grat_year}_{grat_week}_{weekday}", use_container_width=True):
                         update_gratitude_day(
                             grat_year, grat_week, day_date, weekday,
