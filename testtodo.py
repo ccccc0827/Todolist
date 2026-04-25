@@ -674,37 +674,24 @@ def load_reading_data() -> pd.DataFrame:
 
 
 @st.cache_data
-def load_sleep_data(path: str = SLEEP_CSV) -> pd.DataFrame:
-    if not Path(path).exists():
-        create_sleep_csv(path)
-    df = pd.read_csv(path)
-    df["date"] = pd.to_datetime(df["date"]).dt.date
+def load_sleep_data() -> pd.DataFrame:
+    response = supabase.table("sleep_log").select("*").order("date", desc=True).execute()
+    data = response.data if response.data else []
+    df = pd.DataFrame(data)
+
+    if df.empty:
+        return pd.DataFrame(columns=[
+            "date", "sleep_time", "wake_time", "hours", "quality", "note"
+        ])
+
+    df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
+    df["sleep_time"] = df["sleep_time"].fillna("").astype(str)
+    df["wake_time"] = df["wake_time"].fillna("").astype(str)
+    df["hours"] = pd.to_numeric(df["hours"], errors="coerce").fillna(0.0)
+    df["quality"] = pd.to_numeric(df["quality"], errors="coerce").fillna(0).astype(int)
+    df["note"] = df["note"].fillna("").astype(str)
+
     return df.sort_values("date", ascending=False)
-def prepare_sleep_gantt_data(frame: pd.DataFrame) -> pd.DataFrame:
-    if frame.empty:
-        return pd.DataFrame()
-
-    df = frame.copy()
-    df["date"] = pd.to_datetime(df["date"])
-    df["month_key"] = df["date"].dt.strftime("%Y-%m")
-    df["date_label"] = df["date"].dt.strftime("%m/%d")
-
-    def to_anchor_datetime(time_str: str):
-        t = datetime.strptime(str(time_str), "%H:%M")
-        anchor = datetime(2000, 1, 1, t.hour, t.minute)
-
-        # 凌晨時間視為隔天
-        if t.hour < 12:
-            anchor += timedelta(days=1)
-
-        return anchor
-
-    df["gantt_start"] = df["sleep_time"].apply(to_anchor_datetime)
-    df["gantt_end"] = df["wake_time"].apply(to_anchor_datetime)
-
-    df.loc[df["gantt_end"] <= df["gantt_start"], "gantt_end"] += pd.Timedelta(days=1)
-
-    return df.sort_values("date")
 
 @st.cache_data
 def load_habit_data(path: str = HABIT_CSV) -> pd.DataFrame:
@@ -1090,31 +1077,30 @@ def update_book_status(book_id: int, new_status: str):
 # Sleep functions
 # =========================
 def add_sleep_log(log_date: date, sleep_time: str, wake_time: str, quality: int, note: str):
-    current_df = load_sleep_data().copy()
     sleep_dt = datetime.combine(log_date, datetime.strptime(sleep_time, "%H:%M").time())
     wake_dt = datetime.combine(log_date, datetime.strptime(wake_time, "%H:%M").time())
+
     if wake_dt <= sleep_dt:
         wake_dt += timedelta(days=1)
+
     hours = round((wake_dt - sleep_dt).total_seconds() / 3600, 1)
 
-    new_row = pd.DataFrame([{
-        "date": log_date,
+    payload = {
+        "date": log_date.isoformat(),
         "sleep_time": sleep_time,
         "wake_time": wake_time,
         "hours": hours,
-        "quality": quality,
+        "quality": int(quality),
         "note": note.strip(),
-    }])
-    current_df = current_df[current_df["date"] != log_date]
-    updated_df = pd.concat([current_df, new_row], ignore_index=True)
-    updated_df = updated_df.sort_values("date", ascending=False)
-    save_sleep_data(updated_df)
+    }
+
+    supabase.table("sleep_log").upsert(payload).execute()
+    st.cache_data.clear()
 
 
 def delete_sleep_log(log_date: date):
-    current_df = load_sleep_data().copy()
-    current_df = current_df[current_df["date"] != log_date].copy()
-    save_sleep_data(current_df)
+    supabase.table("sleep_log").delete().eq("date", log_date.isoformat()).execute()
+    st.cache_data.clear()
 
 
 # =========================
