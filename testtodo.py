@@ -652,23 +652,6 @@ def save_habit_log_data(df: pd.DataFrame, path: str = HABIT_LOG_CSV):
     df.to_csv(path, index=False)
     st.cache_data.clear()
 
-@st.cache_data
-def load_data() -> pd.DataFrame:
-    response = supabase.table("tasks").select("*").order("date").execute()
-    data = response.data if response.data else []
-    df = pd.DataFrame(data)
-
-    if df.empty:
-        return pd.DataFrame(columns=[
-            "id", "task_name", "category", "status",
-            "date", "deadline", "week", "weekday", "note", "carry_over"
-        ])
-
-    df["date"] = pd.to_datetime(df["date"]).dt.date
-    df["deadline"] = pd.to_datetime(df["deadline"], errors="coerce").dt.date
-    if "carry_over" not in df.columns:
-        df["carry_over"] = False
-    return df
 
 @st.cache_data
 def load_reading_data(path: str = READING_CSV) -> pd.DataFrame:
@@ -718,7 +701,30 @@ def load_habit_data(path: str = HABIT_CSV) -> pd.DataFrame:
         create_habit_csv(path)
     return pd.read_csv(path)
 
+@st.cache_data
+def load_data() -> pd.DataFrame:
+    response = supabase.table("tasks").select("*").order("date").execute()
+    data = response.data if response.data else []
+    df = pd.DataFrame(data)
 
+    if df.empty:
+        return pd.DataFrame(columns=[
+            "id", "task_name", "category", "status",
+            "date", "deadline", "week", "weekday", "note", "carry_over"
+        ])
+
+    df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
+    df["deadline"] = pd.to_datetime(df["deadline"], errors="coerce").dt.date
+    df["task_name"] = df["task_name"].fillna("").astype(str)
+    df["category"] = df["category"].fillna("").astype(str)
+    df["status"] = df["status"].fillna("未完成").astype(str)
+    df["week"] = df["week"].fillna("").astype(str)
+    df["weekday"] = df["weekday"].fillna("").astype(str)
+    df["note"] = df["note"].fillna("").astype(str)
+    df["carry_over"] = df["carry_over"].fillna(False).astype(bool)
+
+    return df
+    
 def normalize_task_dates(df: pd.DataFrame) -> pd.DataFrame:
     frame = df.copy()
     dt = pd.to_datetime(frame["date"])
@@ -748,13 +754,6 @@ def get_deadline_label(deadline, status):
 # =========================
 # Generic save helpers
 # =========================
-def save_task_data(df: pd.DataFrame, path: str = DEFAULT_CSV):
-    df_to_save = df.copy()
-    if "iso_year" in df_to_save.columns:
-        df_to_save = df_to_save.drop(columns=["iso_year"])
-    df_to_save.to_csv(path, index=False)
-    st.cache_data.clear()
-
 
 def save_reading_data(df: pd.DataFrame, path: str = READING_CSV):
     df.to_csv(path, index=False)
@@ -1024,35 +1023,33 @@ def delete_task(task_id: int):
     st.cache_data.clear()
 
     
-def carry_task_to_next_day(task_id: int, path: str = DEFAULT_CSV):
-    current_df = load_data(path).copy()
-    task_row = current_df[current_df["id"] == task_id]
+def carry_task_to_next_day(task_id: int):
+    response = supabase.table("tasks").select("*").eq("id", task_id).execute()
+    rows = response.data if response.data else []
 
-    if task_row.empty:
+    if not rows:
         return
 
-    row = task_row.iloc[0]
-    next_date = row["date"] + timedelta(days=1)
+    row = rows[0]
+    current_date = pd.to_datetime(row["date"]).date()
+    next_date = current_date + timedelta(days=1)
 
-    current_df.loc[current_df["id"] == task_id, "carry_over"] = True
+    supabase.table("tasks").update({"carry_over": True}).eq("id", task_id).execute()
 
-    new_id = int(current_df["id"].max()) + 1
-    new_row = pd.DataFrame([{
-        "id": new_id,
+    new_payload = {
         "task_name": row["task_name"],
         "category": row["category"],
         "status": "未完成",
-        "date": next_date,
+        "date": next_date.isoformat(),
         "deadline": row["deadline"],
-        "week": "",
-        "weekday": "",
-        "note": row["note"],
+        "week": f"W{next_date.isocalendar().week}",
+        "weekday": next_date.strftime("%a"),
+        "note": row.get("note", "") or "",
         "carry_over": False,
-    }])
+    }
 
-    updated_df = pd.concat([current_df, new_row], ignore_index=True)
-    updated_df = normalize_task_dates(updated_df)
-    save_task_data(updated_df, path)
+    supabase.table("tasks").insert(new_payload).execute()
+    st.cache_data.clear()
 # =========================
 # Reading list functions
 # =========================
@@ -1435,14 +1432,6 @@ gratitude_weekly_df = load_gratitude_weekly_data()
 # Sidebar
 # =========================
 with st.sidebar:
-    st.markdown("### 資料來源")
-    uploaded = st.file_uploader("上傳 tasks.csv", type=["csv"], key="task_csv_uploader")
-    if uploaded is not None:
-        up_df = pd.read_csv(uploaded)
-        up_df.to_csv(DEFAULT_CSV, index=False)
-        st.cache_data.clear()
-        st.success("已更新資料，重新整理頁面即可。")
-        st.rerun()
 
     st.markdown("---")
     st.markdown("### 新增任務")
@@ -1463,9 +1452,6 @@ with st.sidebar:
                 st.rerun()
 
     st.markdown("---")
-    st.markdown("**CSV 欄位**")
-    st.code("id,task_name,category,status,date,deadline,week,weekday,note,carry_over", language="text")
-
 
 # =========================
 # State
@@ -1637,10 +1623,8 @@ with tab2:
 
     delete_ids = edited.loc[edited["刪除"] == True, "id"].tolist()
     if delete_ids and st.button("刪除選取任務"):
-        current_df = load_data(DEFAULT_CSV).copy()
-        current_df = current_df[~current_df["id"].isin(delete_ids)].copy()
-        current_df = normalize_task_dates(current_df)
-        save_task_data(current_df, DEFAULT_CSV)
+        for task_id in delete_ids:
+            delete_task(int(task_id))
         st.success("已刪除選取任務")
         st.rerun()
 
@@ -1655,11 +1639,13 @@ with tab3:
         category = st.selectbox("分類", ["學習成長", "日常生活", "自我照顧"], key="tab3_category")
         status = st.selectbox("狀態", ["未完成", "進行中", "已完成"], key="tab3_status")
         task_date = st.date_input("日期", value=monday)
+        deadline = st.date_input("Deadline", value=task_date, key="tab3_deadline")
         note = st.text_area("備註")
         submitted = st.form_submit_button("新增")
+
         if submitted:
             if task_name.strip():
-                add_task(task_name, category, status, day_date, deadline, note)
+                add_task(task_name, category, status, task_date, deadline, note)
                 st.success("任務已新增")
                 st.rerun()
             else:
