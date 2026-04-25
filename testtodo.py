@@ -692,7 +692,32 @@ def load_sleep_data() -> pd.DataFrame:
     df["note"] = df["note"].fillna("").astype(str)
 
     return df.sort_values("date", ascending=False)
+def prepare_sleep_gantt_data(frame: pd.DataFrame) -> pd.DataFrame:
+    if frame.empty:
+        return pd.DataFrame()
 
+    df = frame.copy()
+    df["date"] = pd.to_datetime(df["date"])
+    df["month_key"] = df["date"].dt.strftime("%Y-%m")
+    df["date_label"] = df["date"].dt.strftime("%m/%d")
+
+    def to_anchor_datetime(time_str: str):
+        t = datetime.strptime(str(time_str), "%H:%M")
+        anchor = datetime(2000, 1, 1, t.hour, t.minute)
+
+        # 凌晨時間視為隔天
+        if t.hour < 12:
+            anchor += timedelta(days=1)
+
+        return anchor
+
+    df["gantt_start"] = df["sleep_time"].apply(to_anchor_datetime)
+    df["gantt_end"] = df["wake_time"].apply(to_anchor_datetime)
+
+    df.loc[df["gantt_end"] <= df["gantt_start"], "gantt_end"] += pd.Timedelta(days=1)
+
+    return df.sort_values("date")
+    
 @st.cache_data
 def load_habit_data(path: str = HABIT_CSV) -> pd.DataFrame:
     if not Path(path).exists():
