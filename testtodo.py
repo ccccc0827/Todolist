@@ -822,21 +822,42 @@ def create_gratitude_weekly_csv(path: str):
 
 
 @st.cache_data
-def load_gratitude_daily_data(path: str = GRATITUDE_DAILY_CSV) -> pd.DataFrame:
-    if not Path(path).exists():
-        create_gratitude_daily_csv(path)
-    df = pd.read_csv(path)
-    if not df.empty:
-        df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
+def load_gratitude_daily_data() -> pd.DataFrame:
+    response = supabase.table("gratitude_daily").select("*").order("date").execute()
+    data = response.data if response.data else []
+    df = pd.DataFrame(data)
+
+    if df.empty:
+        return pd.DataFrame(columns=[
+            "id", "iso_year", "week", "date", "weekday",
+            "gratitude_1", "gratitude_2", "gratitude_3", "mood"
+        ])
+
+    df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
+    df["week"] = df["week"].fillna("").astype(str)
+    df["weekday"] = df["weekday"].fillna("").astype(str)
+    df["gratitude_1"] = df["gratitude_1"].fillna("").astype(str)
+    df["gratitude_2"] = df["gratitude_2"].fillna("").astype(str)
+    df["gratitude_3"] = df["gratitude_3"].fillna("").astype(str)
+    df["mood"] = df["mood"].fillna("").astype(str)
     return df
 
 
 @st.cache_data
-def load_gratitude_weekly_data(path: str = GRATITUDE_WEEKLY_CSV) -> pd.DataFrame:
-    if not Path(path).exists():
-        create_gratitude_weekly_csv(path)
-    return pd.read_csv(path)
+def load_gratitude_weekly_data() -> pd.DataFrame:
+    response = supabase.table("gratitude_weekly").select("*").execute()
+    data = response.data if response.data else []
+    df = pd.DataFrame(data)
 
+    if df.empty:
+        return pd.DataFrame(columns=[
+            "id", "iso_year", "week", "weekly_highlight", "free_note"
+        ])
+
+    df["week"] = df["week"].fillna("").astype(str)
+    df["weekly_highlight"] = df["weekly_highlight"].fillna("").astype(str)
+    df["free_note"] = df["free_note"].fillna("").astype(str)
+    return df
 
 def save_gratitude_daily_data(df: pd.DataFrame, path: str = GRATITUDE_DAILY_CSV):
     df.to_csv(path, index=False)
@@ -853,33 +874,31 @@ def get_or_create_gratitude_day(
     week: str,
     day_date: date,
     weekday: str,
-    path: str = GRATITUDE_DAILY_CSV
 ):
-    df = load_gratitude_daily_data(path).copy()
+    df = load_gratitude_daily_data().copy()
 
-    mask = (
-        (df["iso_year"] == iso_year)
-        & (df["week"] == week)
-        & (df["weekday"] == weekday)
-    ) if not df.empty else pd.Series(dtype=bool)
+    if not df.empty:
+        mask = (
+            (df["iso_year"] == iso_year)
+            & (df["week"] == week)
+            & (df["weekday"] == weekday)
+        )
+        if mask.any():
+            return df.loc[mask].iloc[0].to_dict()
 
-    if df.empty or not mask.any():
-        new_row = pd.DataFrame([{
-            "iso_year": iso_year,
-            "week": week,
-            "date": day_date,
-            "weekday": weekday,
-            "gratitude_1": "",
-            "gratitude_2": "",
-            "gratitude_3": "",
-            "mood": ""
-        }])
-        df = pd.concat([df, new_row], ignore_index=True)
-        save_gratitude_daily_data(df, path)
-        return new_row.iloc[0].to_dict()
-
-    row = df.loc[mask].iloc[0].to_dict()
-    return row
+    payload = {
+        "iso_year": iso_year,
+        "week": week,
+        "date": day_date.isoformat(),
+        "weekday": weekday,
+        "gratitude_1": "",
+        "gratitude_2": "",
+        "gratitude_3": "",
+        "mood": "",
+    }
+    supabase.table("gratitude_daily").insert(payload).execute()
+    st.cache_data.clear()
+    return payload
 
 
 def update_gratitude_day(
@@ -891,70 +910,45 @@ def update_gratitude_day(
     gratitude_2: str,
     gratitude_3: str,
     mood: str,
-    path: str = GRATITUDE_DAILY_CSV
 ):
-    df = load_gratitude_daily_data(path).copy()
+    payload = {
+        "iso_year": iso_year,
+        "week": week,
+        "date": day_date.isoformat(),
+        "weekday": weekday,
+        "gratitude_1": "" if pd.isna(gratitude_1) else str(gratitude_1).strip(),
+        "gratitude_2": "" if pd.isna(gratitude_2) else str(gratitude_2).strip(),
+        "gratitude_3": "" if pd.isna(gratitude_3) else str(gratitude_3).strip(),
+        "mood": "" if pd.isna(mood) else str(mood).strip(),
+    }
+
+    supabase.table("gratitude_daily").upsert(
+        payload,
+        on_conflict="iso_year,week,weekday"
+    ).execute()
+    st.cache_data.clear()
+
+
+def get_or_create_gratitude_week(iso_year: int, week: str):
+    df = load_gratitude_weekly_data().copy()
 
     if not df.empty:
-        df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
+        mask = (
+            (df["iso_year"] == iso_year)
+            & (df["week"] == week)
+        )
+        if mask.any():
+            return df.loc[mask].iloc[0].to_dict()
 
-    for col in ["gratitude_1", "gratitude_2", "gratitude_3", "mood", "week", "weekday", "date"]:
-        if col in df.columns:
-            df[col] = df[col].astype("object")
-
-    mask = (
-        (df["iso_year"] == iso_year)
-        & (df["week"] == week)
-        & (df["weekday"] == weekday)
-    ) if not df.empty else pd.Series(dtype=bool)
-
-    clean_g1 = "" if pd.isna(gratitude_1) else str(gratitude_1).strip()
-    clean_g2 = "" if pd.isna(gratitude_2) else str(gratitude_2).strip()
-    clean_g3 = "" if pd.isna(gratitude_3) else str(gratitude_3).strip()
-    clean_mood = "" if pd.isna(mood) else str(mood).strip()
-
-    if df.empty or not mask.any():
-        new_row = pd.DataFrame([{
-            "iso_year": iso_year,
-            "week": week,
-            "date": day_date,
-            "weekday": weekday,
-            "gratitude_1": clean_g1,
-            "gratitude_2": clean_g2,
-            "gratitude_3": clean_g3,
-            "mood": clean_mood
-        }])
-        df = pd.concat([df, new_row], ignore_index=True)
-    else:
-        df.loc[mask, "date"] = day_date
-        df.loc[mask, "gratitude_1"] = clean_g1
-        df.loc[mask, "gratitude_2"] = clean_g2
-        df.loc[mask, "gratitude_3"] = clean_g3
-        df.loc[mask, "mood"] = clean_mood
-
-    save_gratitude_daily_data(df, path)
-
-
-def get_or_create_gratitude_week(iso_year: int, week: str, path: str = GRATITUDE_WEEKLY_CSV):
-    df = load_gratitude_weekly_data(path).copy()
-
-    mask = (
-        (df["iso_year"] == iso_year)
-        & (df["week"] == week)
-    ) if not df.empty else pd.Series(dtype=bool)
-
-    if df.empty or not mask.any():
-        new_row = pd.DataFrame([{
-            "iso_year": iso_year,
-            "week": week,
-            "weekly_highlight": "",
-            "free_note": ""
-        }])
-        df = pd.concat([df, new_row], ignore_index=True)
-        save_gratitude_weekly_data(df, path)
-        return new_row.iloc[0].to_dict()
-
-    return df.loc[mask].iloc[0].to_dict()
+    payload = {
+        "iso_year": iso_year,
+        "week": week,
+        "weekly_highlight": "",
+        "free_note": "",
+    }
+    supabase.table("gratitude_weekly").insert(payload).execute()
+    st.cache_data.clear()
+    return payload
 
 
 def update_gratitude_week(
@@ -962,35 +956,19 @@ def update_gratitude_week(
     week: str,
     weekly_highlight: str,
     free_note: str,
-    path: str = GRATITUDE_WEEKLY_CSV
 ):
-    df = load_gratitude_weekly_data(path).copy()
+    payload = {
+        "iso_year": iso_year,
+        "week": week,
+        "weekly_highlight": "" if pd.isna(weekly_highlight) else str(weekly_highlight).strip(),
+        "free_note": "" if pd.isna(free_note) else str(free_note).strip(),
+    }
 
-    for col in ["week", "weekly_highlight", "free_note"]:
-        if col in df.columns:
-            df[col] = df[col].astype("object")
-
-    clean_highlight = "" if pd.isna(weekly_highlight) else str(weekly_highlight).strip()
-    clean_note = "" if pd.isna(free_note) else str(free_note).strip()
-
-    mask = (
-        (df["iso_year"] == iso_year)
-        & (df["week"] == week)
-    ) if not df.empty else pd.Series(dtype=bool)
-
-    if df.empty or not mask.any():
-        new_row = pd.DataFrame([{
-            "iso_year": iso_year,
-            "week": week,
-            "weekly_highlight": clean_highlight,
-            "free_note": clean_note
-        }])
-        df = pd.concat([df, new_row], ignore_index=True)
-    else:
-        df.loc[mask, "weekly_highlight"] = clean_highlight
-        df.loc[mask, "free_note"] = clean_note
-
-    save_gratitude_weekly_data(df, path)
+    supabase.table("gratitude_weekly").upsert(
+        payload,
+        on_conflict="iso_year,week"
+    ).execute()
+    st.cache_data.clear()
 # =========================
 # Task functions
 # =========================
