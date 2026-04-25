@@ -735,12 +735,13 @@ def normalize_task_dates(df: pd.DataFrame) -> pd.DataFrame:
     return frame
 
 def get_deadline_label(deadline, status):
+    if status == "已完成":
+        return "🟢 已完成"
+
     if pd.isna(deadline):
         return ""
-    today = today_local()
 
-    if status == "已完成":
-        return f"⏰ Deadline: {deadline.month}/{deadline.day}"
+    today = today_local()
 
     if deadline < today:
         return f"🔴 已逾期 {deadline.month}/{deadline.day}"
