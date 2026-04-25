@@ -694,7 +694,11 @@ def load_sleep_data() -> pd.DataFrame:
     return df.sort_values("date", ascending=False)
 def prepare_sleep_gantt_data(frame: pd.DataFrame) -> pd.DataFrame:
     if frame.empty:
-        return pd.DataFrame()
+        return pd.DataFrame(columns=[
+            "date", "date_label", "month_key",
+            "sleep_time", "wake_time", "hours", "quality", "note",
+            "gantt_start", "gantt_end"
+        ])
 
     df = frame.copy()
     df["date"] = pd.to_datetime(df["date"])
@@ -704,11 +708,8 @@ def prepare_sleep_gantt_data(frame: pd.DataFrame) -> pd.DataFrame:
     def to_anchor_datetime(time_str: str):
         t = datetime.strptime(str(time_str), "%H:%M")
         anchor = datetime(2000, 1, 1, t.hour, t.minute)
-
-        # 凌晨時間視為隔天
         if t.hour < 12:
             anchor += timedelta(days=1)
-
         return anchor
 
     df["gantt_start"] = df["sleep_time"].apply(to_anchor_datetime)
