@@ -654,11 +654,22 @@ def save_habit_log_data(df: pd.DataFrame, path: str = HABIT_LOG_CSV):
 
 
 @st.cache_data
-def load_reading_data(path: str = READING_CSV) -> pd.DataFrame:
-    if not Path(path).exists():
-        create_reading_csv(path)
-    df = pd.read_csv(path)
-    df["created_at"] = pd.to_datetime(df["created_at"]).dt.date
+def load_reading_data() -> pd.DataFrame:
+    response = supabase.table("reading_list").select("*").order("created_at", desc=True).execute()
+    data = response.data if response.data else []
+    df = pd.DataFrame(data)
+
+    if df.empty:
+        return pd.DataFrame(columns=[
+            "id", "title", "author", "status", "category", "note", "created_at"
+        ])
+
+    df["title"] = df["title"].fillna("").astype(str)
+    df["author"] = df["author"].fillna("").astype(str)
+    df["status"] = df["status"].fillna("未開始").astype(str)
+    df["category"] = df["category"].fillna("").astype(str)
+    df["note"] = df["note"].fillna("").astype(str)
+    df["created_at"] = pd.to_datetime(df["created_at"], errors="coerce").dt.date
     return df
 
 
@@ -1055,32 +1066,25 @@ def carry_task_to_next_day(task_id: int):
 # Reading list functions
 # =========================
 def add_book(title: str, author: str, status: str, category: str, note: str):
-    current_df = load_reading_data().copy()
-    new_id = 1 if current_df.empty else int(current_df["id"].max()) + 1
-    new_row = pd.DataFrame([{
-        "id": new_id,
+    payload = {
         "title": title.strip(),
         "author": author.strip(),
         "status": status,
         "category": category,
         "note": note.strip(),
-        "created_at": today_local(),
-    }])
-    updated_df = pd.concat([current_df, new_row], ignore_index=True)
-    save_reading_data(updated_df)
+        "created_at": today_local().isoformat(),
+    }
+    supabase.table("reading_list").insert(payload).execute()
+    st.cache_data.clear()
 
 
 def delete_book(book_id: int):
-    current_df = load_reading_data().copy()
-    current_df = current_df[current_df["id"] != book_id].copy()
-    save_reading_data(current_df)
-
+    supabase.table("reading_list").delete().eq("id", book_id).execute()
+    st.cache_data.clear()
 
 def update_book_status(book_id: int, new_status: str):
-    current_df = load_reading_data().copy()
-    current_df.loc[current_df["id"] == book_id, "status"] = new_status
-    save_reading_data(current_df)
-
+    supabase.table("reading_list").update({"status": new_status}).eq("id", book_id).execute()
+    st.cache_data.clear()
 
 # =========================
 # Sleep functions
