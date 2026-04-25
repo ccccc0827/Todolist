@@ -19,7 +19,7 @@ import plotly.graph_objects as go
 from supabase import create_client, Client
 
 SUPABASE_URL = st.secrets["https://rzuqbijcoxfmjwbepkgs.supabase.co"]
-SUPABASE_KEY = st.secrets["sb_secret_pdAD0r0kvncinTWTzL0DPA__WyssLxw"]
+SUPABASE_KEY = st.secrets["sb_secret_5C4RBdqYk9VfBRlhvhcn6A_fwn_9wB3"]
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 st.set_page_config(page_title="Weekly Planning Dashboard", layout="wide")
