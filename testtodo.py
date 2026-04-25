@@ -630,56 +630,7 @@ def status_pill_html(status: str) -> str:
 # =========================
 # Data helpers
 # =========================
-def create_sample_csv(path: str):
-    sample = pd.DataFrame(
-        [
-            [1, "日文 L35", "學習成長", "未完成", "2026-04-21", "2026-04-22", "W17", "Mon", "", False]
-        ],
-        columns=["id", "task_name", "category", "status", "date", "deadline", "week", "weekday", "note", "carry_over"],
-    )
-    sample.to_csv(path, index=False)
 
-
-def create_reading_csv(path: str):
-    sample = pd.DataFrame(
-        [
-            [1, "城與不確定的牆", "村上春樹", "閱讀中", "小說", "想慢慢讀", "2026-04-20"],
-            [2, "一間自己的房間", "Virginia Woolf", "未開始", "散文", "", "2026-04-20"],
-        ],
-        columns=["id", "title", "author", "status", "category", "note", "created_at"],
-    )
-    sample.to_csv(path, index=False)
-
-
-def create_sleep_csv(path: str):
-    sample = pd.DataFrame(
-        [
-            ["2026-04-20", "01:30", "09:30", 8.0, 4, "普通"],
-            ["2026-04-21", "01:10", "09:00", 7.8, 5, "睡得不錯"],
-        ],
-        columns=["date", "sleep_time", "wake_time", "hours", "quality", "note"],
-    )
-    sample.to_csv(path, index=False)
-
-
-def create_habit_csv(path: str):
-    days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-    sample = pd.DataFrame(
-        [
-            [1, "讀書 3 小時", *([False] * 7)],
-            [2, "閱讀 30 分鐘", *([False] * 7)],
-            [3, "23:30 前上床", *([False] * 7)],
-            [4, "運動 20 分鐘", *([False] * 7)],
-        ],
-        columns=["id", "habit_name", *days],
-    )
-    sample.to_csv(path, index=False)
-    
-def create_habit_log_csv(path: str):
-    sample = pd.DataFrame(
-        columns=["habit_id", "date", "done"]
-    )
-    sample.to_csv(path, index=False)
 
 
 @st.cache_data
