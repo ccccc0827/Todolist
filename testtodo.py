@@ -653,21 +653,22 @@ def save_habit_log_data(df: pd.DataFrame, path: str = HABIT_LOG_CSV):
     st.cache_data.clear()
 
 @st.cache_data
-def load_data(path: str = DEFAULT_CSV) -> pd.DataFrame:
-    if not Path(path).exists():
-        create_sample_csv(path)
-    df = pd.read_csv(path)
-    df["date"] = pd.to_datetime(df["date"]).dt.date
+def load_data() -> pd.DataFrame:
+    response = supabase.table("tasks").select("*").order("date").execute()
+    data = response.data if response.data else []
+    df = pd.DataFrame(data)
 
-    if "deadline" in df.columns:
-        df["deadline"] = pd.to_datetime(df["deadline"], errors="coerce").dt.date
-    else:
-        df["deadline"] = pd.NaT
-    
+    if df.empty:
+        return pd.DataFrame(columns=[
+            "id", "task_name", "category", "status",
+            "date", "deadline", "week", "weekday", "note", "carry_over"
+        ])
+
+    df["date"] = pd.to_datetime(df["date"]).dt.date
+    df["deadline"] = pd.to_datetime(df["deadline"], errors="coerce").dt.date
     if "carry_over" not in df.columns:
         df["carry_over"] = False
     return df
-
 
 @st.cache_data
 def load_reading_data(path: str = READING_CSV) -> pd.DataFrame:
@@ -964,43 +965,34 @@ def update_gratitude_week(
 # =========================
 # Task functions
 # =========================
-def update_task(task_id: int, updates: dict, path: str = DEFAULT_CSV):
-    current_df = pd.read_csv(path).copy()
+def update_task(task_id: int, updates: dict):
+    payload = updates.copy()
 
-    mask = current_df["id"] == task_id
-    if not mask.any():
-        return
+    if "date" in payload and payload["date"] not in [None, ""]:
+        task_date = payload["date"]
+        payload["date"] = task_date.isoformat()
+        payload["week"] = f"W{task_date.isocalendar().week}"
+        payload["weekday"] = task_date.strftime("%a")
 
-    # 先把容易出 dtype 問題的欄位轉成 object
-    for col in ["task_name", "category", "note", "date", "deadline"]:
-        if col in current_df.columns:
-            current_df[col] = current_df[col].astype("object")
+    if "deadline" in payload:
+        payload["deadline"] = (
+            payload["deadline"].isoformat()
+            if payload["deadline"] not in [None, ""]
+            else None
+        )
 
-    for col, value in updates.items():
-        if col in ["date", "deadline"]:
-            current_df.loc[mask, col] = (
-                pd.to_datetime(value).strftime("%Y-%m-%d")
-                if value not in [None, ""]
-                else ""
-            )
-        elif col in ["task_name", "category", "note"]:
-            current_df.loc[mask, col] = "" if value is None else str(value)
-        else:
-            current_df.loc[mask, col] = value
+    if "task_name" in payload and payload["task_name"] is not None:
+        payload["task_name"] = str(payload["task_name"]).strip()
 
-    dt = pd.to_datetime(current_df["date"], errors="coerce")
-    iso = dt.dt.isocalendar()
-    current_df["week"] = "W" + iso.week.astype(str)
-    current_df["weekday"] = dt.dt.strftime("%a")
+    if "note" in payload and payload["note"] is not None:
+        payload["note"] = str(payload["note"]).strip()
 
-    current_df.to_csv(path, index=False)
+    supabase.table("tasks").update(payload).eq("id", task_id).execute()
     st.cache_data.clear()
     
-def update_task_status(task_id: int, new_status: str, path: str = DEFAULT_CSV):
-    current_df = load_data(path).copy()
-    current_df.loc[current_df["id"] == task_id, "status"] = new_status
-    current_df = normalize_task_dates(current_df)
-    save_task_data(current_df, path)
+def update_task_status(task_id: int, new_status: str):
+    supabase.table("tasks").update({"status": new_status}).eq("id", task_id).execute()
+    st.cache_data.clear()
     
 def add_task(
     task_name: str,
@@ -1010,32 +1002,26 @@ def add_task(
     deadline: date | None = None,
     note: str = "",
     carry_over: bool = False,
-    path: str = DEFAULT_CSV
 ):
-    current_df = load_data(path).copy()
-    new_id = 1 if current_df.empty else int(current_df["id"].max()) + 1
-    new_row = pd.DataFrame([{
-        "id": new_id,
+    payload = {
         "task_name": task_name.strip(),
         "category": category,
         "status": status,
-        "date": task_date,
-        "week": "",
-        "weekday": "",
+        "date": task_date.isoformat(),
+        "deadline": deadline.isoformat() if deadline else None,
+        "week": f"W{task_date.isocalendar().week}",
+        "weekday": task_date.strftime("%a"),
         "note": note.strip(),
-        "deadline": deadline,
         "carry_over": carry_over,
-    }])
-    updated_df = pd.concat([current_df, new_row], ignore_index=True)
-    updated_df = normalize_task_dates(updated_df)
-    save_task_data(updated_df, path)
+    }
+
+    supabase.table("tasks").insert(payload).execute()
+    st.cache_data.clear()
 
 
-def delete_task(task_id: int, path: str = DEFAULT_CSV):
-    current_df = load_data(path).copy()
-    current_df = current_df[current_df["id"] != task_id].copy()
-    current_df = normalize_task_dates(current_df)
-    save_task_data(current_df, path)
+def delete_task(task_id: int):
+    supabase.table("tasks").delete().eq("id", task_id).execute()
+    st.cache_data.clear()
 
     
 def carry_task_to_next_day(task_id: int, path: str = DEFAULT_CSV):
