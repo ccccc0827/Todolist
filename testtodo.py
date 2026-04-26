@@ -679,17 +679,19 @@ def load_sleep_data() -> pd.DataFrame:
 
     if df.empty:
         return pd.DataFrame(columns=[
-            "date", "sleep_time", "wake_time", "hours", "quality", "note"
+            "id", "date", "sleep_type", "sleep_time", "wake_time", "hours", "quality", "note"
         ])
 
     df["date"] = pd.to_datetime(df["date"], errors="coerce").dt.date
+    df["sleep_type"] = df["sleep_type"].fillna("main").astype(str)
     df["sleep_time"] = df["sleep_time"].fillna("").astype(str)
     df["wake_time"] = df["wake_time"].fillna("").astype(str)
     df["hours"] = pd.to_numeric(df["hours"], errors="coerce").fillna(0.0)
     df["quality"] = pd.to_numeric(df["quality"], errors="coerce").fillna(0).astype(int)
     df["note"] = df["note"].fillna("").astype(str)
 
-    return df.sort_values("date", ascending=False)
+    return df.sort_values(["date", "sleep_type"], ascending=[False, True])
+    
 def prepare_sleep_gantt_data(frame: pd.DataFrame) -> pd.DataFrame:
     if frame.empty:
         return pd.DataFrame(columns=[
@@ -1085,7 +1087,7 @@ def update_book_status(book_id: int, new_status: str):
 # =========================
 # Sleep functions
 # =========================
-def add_sleep_log(log_date: date, sleep_time: str, wake_time: str, quality: int, note: str):
+def add_sleep_log(log_date: date, sleep_type: str, sleep_time: str, wake_time: str, quality: int, note: str):
     sleep_dt = datetime.combine(log_date, datetime.strptime(sleep_time, "%H:%M").time())
     wake_dt = datetime.combine(log_date, datetime.strptime(wake_time, "%H:%M").time())
 
@@ -1096,6 +1098,7 @@ def add_sleep_log(log_date: date, sleep_time: str, wake_time: str, quality: int,
 
     payload = {
         "date": log_date.isoformat(),
+        "sleep_type": sleep_type,
         "sleep_time": sleep_time,
         "wake_time": wake_time,
         "hours": hours,
@@ -1103,12 +1106,12 @@ def add_sleep_log(log_date: date, sleep_time: str, wake_time: str, quality: int,
         "note": note.strip(),
     }
 
-    supabase.table("sleep_log").upsert(payload).execute()
+    supabase.table("sleep_log").insert(payload).execute()
     st.cache_data.clear()
 
 
-def delete_sleep_log(log_date: date):
-    supabase.table("sleep_log").delete().eq("date", log_date.isoformat()).execute()
+def delete_sleep_log(log_id: int):
+    supabase.table("sleep_log").delete().eq("id", log_id).execute()
     st.cache_data.clear()
 
 
@@ -1823,16 +1826,27 @@ with tab5:
         with left:
             with st.form("sleep_form", clear_on_submit=True):
                 log_date = st.date_input("日期", value=today_local(), key="sleep_date")
+            
+                sleep_type_label = st.selectbox(
+                    "睡眠類型",
+                    ["主睡眠", "午睡"],
+                    key="sleep_type"
+                )
+            
+                sleep_type = "main" if sleep_type_label == "主睡眠" else "nap"
+            
                 sleep_time = st.text_input("入睡時間（HH:MM）", value="01:00")
                 wake_time = st.text_input("起床時間（HH:MM）", value="09:00")
                 quality = st.slider("睡眠品質", 1, 5, 3)
                 note = st.text_area("備註")
+            
                 submitted = st.form_submit_button("儲存睡眠紀錄")
+            
                 if submitted:
                     try:
                         datetime.strptime(sleep_time, "%H:%M")
                         datetime.strptime(wake_time, "%H:%M")
-                        add_sleep_log(log_date, sleep_time, wake_time, quality, note)
+                        add_sleep_log(log_date, sleep_type, sleep_time, wake_time, quality, note)
                         st.success("已儲存睡眠紀錄")
                         st.rerun()
                     except ValueError:
@@ -1840,15 +1854,38 @@ with tab5:
     
             c1, c2 = st.columns(2)
             if not selected_month_sleep_df.empty:
-                avg_hours = round(float(selected_month_sleep_df["hours"].mean()), 1)
-                avg_quality = round(float(selected_month_sleep_df["quality"].mean()), 1)
+                main_sleep_df = selected_month_sleep_df[
+                    selected_month_sleep_df["sleep_type"] == "main"
+                ].copy()
+                
+                nap_sleep_df = selected_month_sleep_df[
+                    selected_month_sleep_df["sleep_type"] == "nap"
+                ].copy()
+                
+                if not main_sleep_df.empty:
+                    avg_hours = round(float(main_sleep_df["hours"].mean()), 1)
+                    avg_quality = round(float(main_sleep_df["quality"].mean()), 1)
+                else:
+                    avg_hours = 0.0
+                    avg_quality = 0.0
+                
+                if not nap_sleep_df.empty:
+                    avg_nap_hours = round(float(nap_sleep_df["hours"].mean()), 1)
+                    total_nap_hours = round(float(nap_sleep_df["hours"].sum()), 1)
+                else:
+                    avg_nap_hours = 0.0
+                    total_nap_hours = 0.0
             else:
                 avg_hours = 0.0
                 avg_quality = 0.0
     
-            c1.metric("月平均睡眠時數", f"{avg_hours} h")
-            c2.metric("月平均睡眠品質", f"{avg_quality} / 5")
-    
+            c1, c2, c3, c4 = st.columns(4)
+
+            c1.metric("月平均主睡眠", f"{avg_hours} h")
+            c2.metric("主睡眠品質", f"{avg_quality} / 5")
+            c3.metric("平均午睡", f"{avg_nap_hours} h")
+            c4.metric("本月午睡總時數", f"{total_nap_hours} h")
+                
         with right:
             st.markdown("#### 最近睡眠紀錄")
             if sleep_df.empty:
@@ -1864,12 +1901,18 @@ with tab5:
                             if pd.notna(row.note) and str(row.note).strip():
                                 st.write(row.note)
                         with c2:
-                            if st.button("🗑️", key=f"del_sleep_{row.date}"):
-                                delete_sleep_log(row.date)
+                            if st.button("🗑️", key=f"del_sleep_{row.id}"):
+                                delete_sleep_log(row.id)
                                 st.rerun()
     
             st.markdown("#### 睡眠明細表")
             st.dataframe(sleep_df.sort_values("date", ascending=False), use_container_width=True, hide_index=True)
+
+type_label = "🌙 主睡眠" if row.sleep_type == "main" else "☀️ 午睡"
+st.markdown(f"**{row.date}　{type_label}**")
+st.write(f"{row.sleep_time} → {row.wake_time}　｜　{row.hours} 小時")
+st.caption(f"品質：{row.quality}/5")
+
     with habit_tab:
         habit_log_df = load_habit_log_data()
         current_year = today_local().year
