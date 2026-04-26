@@ -1895,11 +1895,11 @@ with tab5:
                     with st.container(border=True):
                         c1, c2 = st.columns([1.25, 0.2])
                         with c1:
-                            st.markdown(f"**{row.date}**")
+                            type_label = "🌙 主睡眠" if row.sleep_type == "main" else "☀️ 午睡"
+                            st.markdown(f"**{row.date}　{type_label}**")
                             st.write(f"{row.sleep_time} → {row.wake_time}　｜　{row.hours} 小時")
                             st.caption(f"品質：{row.quality}/5")
-                            if pd.notna(row.note) and str(row.note).strip():
-                                st.write(row.note)
+
                         with c2:
                             if st.button("🗑️", key=f"del_sleep_{row.id}"):
                                 delete_sleep_log(row.id)
@@ -1908,10 +1908,6 @@ with tab5:
             st.markdown("#### 睡眠明細表")
             st.dataframe(sleep_df.sort_values("date", ascending=False), use_container_width=True, hide_index=True)
 
-type_label = "🌙 主睡眠" if row.sleep_type == "main" else "☀️ 午睡"
-st.markdown(f"**{row.date}　{type_label}**")
-st.write(f"{row.sleep_time} → {row.wake_time}　｜　{row.hours} 小時")
-st.caption(f"品質：{row.quality}/5")
 
     with habit_tab:
         habit_log_df = load_habit_log_data()
